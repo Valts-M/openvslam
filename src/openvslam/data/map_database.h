@@ -86,9 +86,9 @@ public:
      * @param angle_threshold Maximum angle between given pose and close keyframes
      * @return Vector closest keyframes
      */
-    std::vector<keyframe*> get_close_keyframes(const Mat44_t& pose,
-                                               const double distance_threshold,
-                                               const double angle_threshold) const;
+    std::vector<std::shared_ptr<keyframe>> get_close_keyframes(const Mat44_t& pose,
+                                                               const double distance_threshold,
+                                                               const double angle_threshold) const;
 
     /**
      * Get the number of keyframes
