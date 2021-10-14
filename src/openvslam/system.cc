@@ -73,7 +73,7 @@ system::system(const std::shared_ptr<config>& cfg, const std::string& vocab_file
     // database
     cam_db_ = new data::camera_database(camera_);
     map_db_ = new data::map_database();
-    bow_db_ = new data::bow_database(bow_vocab_);
+    bow_db_ = new data::bow_database(bow_vocab_, cfg_->yaml_node_["loop_min_distance"].as<int>(30));
 
     // frame and map publisher
     frame_publisher_ = std::shared_ptr<publish::frame_publisher>(new publish::frame_publisher(cfg_, map_db_));

@@ -22,7 +22,7 @@ public:
      * Constructor
      * @param bow_vocab
      */
-    explicit bow_database(bow_vocabulary* bow_vocab);
+    explicit bow_database(bow_vocabulary* bow_vocab, int min_distance = 30);
 
     /**
      * Destructor
@@ -116,6 +116,12 @@ protected:
 
     //! BoW vocabulary
     bow_vocabulary* bow_vocab_;
+
+    //-----------------------------------------
+    // Parameters
+
+    //! Minimum distance to allow for loop candidates
+    int min_distance_;
 
     //-----------------------------------------
     // temporary variables
