@@ -9,6 +9,7 @@
 #include "openvslam/util/yaml.h"
 
 #include <opencv2/highgui.hpp>
+#include <nlohmann/json.hpp>
 
 namespace pangolin_viewer {
 
@@ -27,7 +28,7 @@ viewer::viewer(const YAML::Node& yaml_node, openvslam::system* system,
       point_size_(yaml_node["point_size"].as<unsigned int>(2)),
       camera_size_(yaml_node["camera_size"].as<float>(0.15)),
       camera_line_width_(yaml_node["camera_line_width"].as<unsigned int>(2)),
-      cs_(yaml_node["color_scheme"].as<std::string>("black")),
+      cs_(yaml_node["color_scheme"].as<std::string>("white")),
       mapping_mode_(system->mapping_module_is_enabled()),
       loop_detection_mode_(system->loop_detector_is_enabled()) {}
 
@@ -124,7 +125,7 @@ void viewer::run() {
 void viewer::create_menu_panel() {
     pangolin::CreatePanel("menu").SetBounds(0.0, 1.0, 0.0, pangolin::Attach::Pix(175));
     menu_follow_camera_ = std::unique_ptr<pangolin::Var<bool>>(new pangolin::Var<bool>("menu.Follow Camera", true, true));
-    menu_grid_ = std::unique_ptr<pangolin::Var<bool>>(new pangolin::Var<bool>("menu.Show Grid", false, true));
+    menu_grid_ = std::unique_ptr<pangolin::Var<bool>>(new pangolin::Var<bool>("menu.Show Grid", true, true));
     menu_show_keyfrms_ = std::unique_ptr<pangolin::Var<bool>>(new pangolin::Var<bool>("menu.Show Keyframes", true, true));
     menu_show_lms_ = std::unique_ptr<pangolin::Var<bool>>(new pangolin::Var<bool>("menu.Show Landmarks", true, true));
     menu_show_local_map_ = std::unique_ptr<pangolin::Var<bool>>(new pangolin::Var<bool>("menu.Show Local Map", true, true));
@@ -136,6 +137,8 @@ void viewer::create_menu_panel() {
     menu_terminate_ = std::unique_ptr<pangolin::Var<bool>>(new pangolin::Var<bool>("menu.Terminate", false, false));
     menu_frm_size_ = std::unique_ptr<pangolin::Var<float>>(new pangolin::Var<float>("menu.Frame Size", 1.0, 1e-1, 1e1, true));
     menu_lm_size_ = std::unique_ptr<pangolin::Var<float>>(new pangolin::Var<float>("menu.Landmark Size", 1.0, 1e-1, 1e1, true));
+    menu_dist_to_ground_ = std::unique_ptr<pangolin::Var<float>>(new pangolin::Var<float>("menu.Dist to ground", 0.3, 0.0, 2.0, false));
+    menu_brush_width_ = std::unique_ptr<pangolin::Var<float>>(new pangolin::Var<float>("menu.Brush width", 0.6, 0.0, 2.0, false));
 }
 
 void viewer::follow_camera(const pangolin::OpenGlMatrix& gl_cam_pose_wc) {
@@ -168,19 +171,51 @@ void viewer::draw_horizontal_grid() {
     glBegin(GL_LINES);
 
     constexpr float interval_ratio = 0.1;
-    constexpr float grid_min = -100.0f * interval_ratio;
-    constexpr float grid_max = 100.0f * interval_ratio;
+    constexpr float grid_min = -1000.0f * interval_ratio;
+    constexpr float grid_max = 1000.0f * interval_ratio;
 
-    for (int x = -10; x <= 10; x += 1) {
+    for (int x = -100; x <= 100; x += 1) {
         draw_line(x * 10.0f * interval_ratio, grid_min, 0, x * 10.0f * interval_ratio, grid_max, 0);
     }
-    for (int y = -10; y <= 10; y += 1) {
+    for (int y = -100; y <= 100; y += 1) {
         draw_line(grid_min, y * 10.0f * interval_ratio, 0, grid_max, y * 10.0f * interval_ratio, 0);
     }
 
     glEnd();
 
     glPopMatrix();
+}
+
+void viewer::create_report_config_file(const std::string &mapDir, const std::string &resultDir){
+    using json = nlohmann::json;
+
+    json config = {
+        {"Directories", {
+            {"TrajectoryDir", resultDir},
+            {"ResultDir", resultDir},
+            {"MapDir", mapDir}
+        }},
+        {"Parameters", {
+            {"CeilingHeight", 1.0},
+            {"FloorHeight", -menu_dist_to_ground_->Get()},
+            {"BrushWidth", menu_brush_width_->Get()}
+        }}
+    };
+
+    try
+    {
+        std::ofstream fileWriter(resultDir + "/config.json");
+        if(!fileWriter.is_open())
+        {
+            std::cerr << "Couldn't create file to write report config!\n";
+            return;
+        }
+        fileWriter << std::setw(4) << config << '\n';
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
 }
 
 pangolin::OpenGlMatrix viewer::get_current_cam_pose() {

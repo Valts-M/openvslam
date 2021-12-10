@@ -68,6 +68,18 @@ list(APPEND EXECUTABLE_TARGETS run_tum_rgbd_slam)
 add_executable(run_tum_rgbd_localization run_tum_rgbd_localization.cc util/tum_rgbd_util.cc)
 list(APPEND EXECUTABLE_TARGETS run_tum_rgbd_localization)
 
+add_executable(run_slambox run_slambox.cpp util/realsense_util.cpp)
+target_link_libraries(run_slambox PRIVATE ${realsense2_LIBRARY})
+list(APPEND EXECUTABLE_TARGETS run_slambox)
+
+add_executable(run_realsense_t265 run_realsense_t265.cpp util/realsense_util.cpp)
+target_link_libraries(run_realsense_t265 PRIVATE ${realsense2_LIBRARY})
+list(APPEND EXECUTABLE_TARGETS run_realsense_t265)
+
+add_executable(run_realsense_slam run_realsense_slam.cpp util/realsense_util.cpp)
+target_link_libraries(run_realsense_slam PRIVATE ${realsense2_LIBRARY})
+list(APPEND EXECUTABLE_TARGETS run_realsense_slam)
+
 foreach(EXECUTABLE_TARGET IN LISTS EXECUTABLE_TARGETS)
     # Set output directory for executables
     set_target_properties(${EXECUTABLE_TARGET} PROPERTIES

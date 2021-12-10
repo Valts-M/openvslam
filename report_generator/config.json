@@ -1,0 +1,12 @@
+{
+  "Directories": {
+    "TrajectoryDir": "./trajectories",
+    "ResultDir": "./results",
+    "MapDir": "./maps"
+  },
+  "Parameters": {
+    "CeilingHeight": 1,
+    "FloorHeight": -0.3,
+    "BrushWidth": 0.6
+  }
+}

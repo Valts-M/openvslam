@@ -192,7 +192,7 @@ RUN set -x && \
     -DBUILD_EXAMPLES=ON \
     -DUSE_STACK_TRACE_LOGGER=ON \
     .. && \
-  make -j${NUM_THREADS} && \
+  make -j6 && \
   rm -rf CMakeCache.txt CMakeFiles Makefile cmake_install.cmake example src && \
   chmod -R 777 ./*
 

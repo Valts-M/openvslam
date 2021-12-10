@@ -1,0 +1,56 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Mapping",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/${input:program}",
+            "args": ["--debug", "-v", "${workspaceFolder}/vocab/orb_vocab.fbow", "-c", "${workspaceFolder}/example/realsense/realsense-T265.yaml"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build",
+            "preLaunchTask": "build",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Localization",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/${input:program}",
+            "args": ["-v", "${workspaceFolder}/vocab/orb_vocab.fbow", "-s", "/home/valts/test", "-c", "${workspaceFolder}/example/realsense/realsense-D453i.yaml", "-l"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build",
+            "preLaunchTask": "build",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+    ],
+    "inputs": [
+        {
+          "id": "program",
+          "type": "promptString",
+          "description": "Program name",
+          "default": "run_realsense_t265"
+        }
+      ]
+}

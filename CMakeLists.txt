@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 project(openvslam LANGUAGES CXX C)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(POLICY CMP0042)
@@ -99,6 +99,10 @@ find_package(Eigen3 3.3 REQUIRED)
 
 # yaml-cpp
 find_package(yaml-cpp REQUIRED)
+
+#realsense
+find_package(realsense2 REQUIRED)
+include_directories(${realsense2_INCLUDE_DIRS})
 
 # OpenCV
 find_package(OpenCV 3.3.1 QUIET

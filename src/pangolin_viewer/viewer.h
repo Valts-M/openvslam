@@ -55,6 +55,11 @@ public:
      */
     bool is_terminated();
 
+    /**
+     * Save settings for report generator
+     */
+    void create_report_config_file(const std::string &mapDir, const std::string &resultDir);
+
 private:
     /**
      * Create menu panel
@@ -164,6 +169,8 @@ private:
     std::unique_ptr<pangolin::Var<bool>> menu_terminate_;
     std::unique_ptr<pangolin::Var<float>> menu_frm_size_;
     std::unique_ptr<pangolin::Var<float>> menu_lm_size_;
+    std::unique_ptr<pangolin::Var<float>> menu_dist_to_ground_;
+    std::unique_ptr<pangolin::Var<float>> menu_brush_width_;
 
     // camera renderer
     std::unique_ptr<pangolin::OpenGlRenderState> s_cam_;
