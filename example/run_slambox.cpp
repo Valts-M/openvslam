@@ -1,3 +1,5 @@
+// #define USE_SOCKET_PUBLISHER
+
 #include "util/realsense_util.h"
 
 #ifdef USE_PANGOLIN_VIEWER
@@ -83,9 +85,11 @@ void rgbd_tracking(const std::shared_ptr<openvslam::config>& cfg,
     // create a viewer object
     // and pass the frame_publisher and the map_publisher
 #ifdef USE_PANGOLIN_VIEWER
-    pangolin_viewer::viewer viewer(openvslam::util::yaml_optional_ref(cfg->yaml_node_, "PangolinViewer"), &SLAM, SLAM.get_frame_publisher(), SLAM.get_map_publisher());
+    pangolin_viewer::viewer viewer(
+        openvslam::util::yaml_optional_ref(cfg->yaml_node_, "PangolinViewer"), &SLAM, SLAM.get_frame_publisher(), SLAM.get_map_publisher());
 #elif USE_SOCKET_PUBLISHER
-    socket_publisher::publisher publisher(cfg, &SLAM, SLAM.get_frame_publisher(), SLAM.get_map_publisher());
+    socket_publisher::publisher publisher(
+        openvslam::util::yaml_optional_ref(cfg->yaml_node_, "SocketPublisher"), &SLAM, SLAM.get_frame_publisher(), SLAM.get_map_publisher());
 #endif
 
     cv::Mat frame1, frame2, input1, input2;
@@ -100,11 +104,11 @@ void rgbd_tracking(const std::shared_ptr<openvslam::config>& cfg,
         while (true) {
             rs2::frameset data = pipeline.wait_for_frames();
 
-              rs2::frameset alignedFrame = alignTo.process(data);
-              rs2::depth_frame depth = alignedFrame.get_depth_frame();
+            rs2::frameset alignedFrame = alignTo.process(data);
+            rs2::depth_frame depth = alignedFrame.get_depth_frame();
 
-              frame1 = funcFormat::frame2Mat(alignedFrame.get_color_frame());
-              frame2 = funcFormat::frame2Mat(depth);
+            frame1 = funcFormat::frame2Mat(alignedFrame.get_color_frame());
+            frame2 = funcFormat::frame2Mat(depth);
 
             input1 = frame1.clone();
             input2 = frame2.clone();
@@ -223,9 +227,11 @@ void stereo_tracking(const std::shared_ptr<openvslam::config>& cfg,
     // create a viewer object
     // and pass the frame_publisher and the map_publisher
 #ifdef USE_PANGOLIN_VIEWER
-    pangolin_viewer::viewer viewer(openvslam::util::yaml_optional_ref(cfg->yaml_node_, "PangolinViewer"), &SLAM, SLAM.get_frame_publisher(), SLAM.get_map_publisher());
+    pangolin_viewer::viewer viewer(
+        openvslam::util::yaml_optional_ref(cfg->yaml_node_, "PangolinViewer"), &SLAM, SLAM.get_frame_publisher(), SLAM.get_map_publisher());
 #elif USE_SOCKET_PUBLISHER
-    socket_publisher::publisher publisher(cfg, &SLAM, SLAM.get_frame_publisher(), SLAM.get_map_publisher());
+    socket_publisher::publisher publisher(
+        openvslam::util::yaml_optional_ref(cfg->yaml_node_, "SocketPublisher"), &SLAM, SLAM.get_frame_publisher(), SLAM.get_map_publisher());
 #endif
 
     cv::Mat frame1, frame2, input1, input2;

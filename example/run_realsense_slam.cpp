@@ -8,6 +8,7 @@
 
 #include "openvslam/system.h"
 #include "openvslam/config.h"
+#include "openvslam/util/yaml.h"
 
 #include <iostream>
 #include <chrono>
