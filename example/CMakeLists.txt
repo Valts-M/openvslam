@@ -80,6 +80,10 @@ add_executable(run_realsense_slam run_realsense_slam.cpp util/realsense_util.cpp
 target_link_libraries(run_realsense_slam PRIVATE ${realsense2_LIBRARY})
 list(APPEND EXECUTABLE_TARGETS run_realsense_slam)
 
+add_executable(realsense_test realsense_test.cpp util/realsense_util.cpp)
+target_link_libraries(realsense_test PRIVATE ${realsense2_LIBRARY})
+list(APPEND EXECUTABLE_TARGETS realsense_test)
+
 foreach(EXECUTABLE_TARGET IN LISTS EXECUTABLE_TARGETS)
     # Set output directory for executables
     set_target_properties(${EXECUTABLE_TARGET} PROPERTIES

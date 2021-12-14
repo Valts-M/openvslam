@@ -8,8 +8,8 @@
             "name": "Mapping",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/${input:program}",
-            "args": ["--debug", "-v", "${workspaceFolder}/vocab/orb_vocab.fbow", "-c", "${workspaceFolder}/example/realsense/realsense-D435i.yaml"],
+            "program": "${workspaceFolder}/build/run_slambox",
+            "args": ["--debug", "-v", "${workspaceFolder}/vocab/orb_vocab.fbow", "-c", "${workspaceFolder}/example/realsense/realsense-T265.yaml", "-s", "/home/valts/test"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/build",
             "preLaunchTask": "debug",
@@ -28,11 +28,32 @@
             "name": "Localization",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/${input:program}",
+            "program": "${workspaceFolder}/build/run_slambox",
             "args": ["-v", "${workspaceFolder}/vocab/orb_vocab.fbow", "-s", "/home/valts/test", "-c", "${workspaceFolder}/example/realsense/realsense-D453i.yaml", "-l"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/build",
-            "preLaunchTask": "debug",
+            "preLaunchTask": "build",
+            "environment": [],
+
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Realsense_test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/realsense_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build",
+            "preLaunchTask": "build",
             "environment": [],
 
             "externalConsole": false,

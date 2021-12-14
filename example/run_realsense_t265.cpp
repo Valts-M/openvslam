@@ -58,22 +58,6 @@ void stereo_tracking(const std::shared_ptr<openvslam::config>& cfg,
     config.enable_stream(RS2_STREAM_FISHEYE, 2, 848, 800, RS2_FORMAT_Y8, 30);
     rs2::pipeline_profile rs2_cfg = pipeline.start(config);
 
-    rs2::stream_profile fisheye_stream = rs2_cfg.get_stream(RS2_STREAM_FISHEYE, 1);
-    rs2_intrinsics intrinsicsLeft = fisheye_stream.as<rs2::video_stream_profile>().get_intrinsics();
-    rs2::stream_profile fisheye_streamR = rs2_cfg.get_stream(RS2_STREAM_FISHEYE, 2);
-    rs2_intrinsics intrinsicsRight = fisheye_streamR.as<rs2::video_stream_profile>().get_intrinsics();
-
-    cv::Mat intrinsicsL = (cv::Mat_<double>(3, 3) <<
-        intrinsicsLeft.fx, 0, intrinsicsLeft.ppx,
-        0, intrinsicsLeft.fy, intrinsicsLeft.ppy, 0, 0, 1);
-    cv::Mat intrinsicsR = (cv::Mat_<double>(3, 3) <<
-        intrinsicsRight.fx, 0, intrinsicsRight.ppx,
-        0, intrinsicsRight.fy, intrinsicsRight.ppy, 0, 0, 1);
-
-    cv::Mat distCoeffsL = cv::Mat(1, 4, CV_32F, intrinsicsLeft.coeffs);
-    cv::Mat distCoeffsR = cv::Mat(1, 4, CV_32F, intrinsicsRight.coeffs);
-
-    // rs2_extrinsics pose_to_fisheye_extrinsics = rs2_cfg.get_stream(RS2_STREAM_FISHEYE, 1).get_extrinsics_to(rs2_cfg.get_stream(RS2_STREAM_FISHEYE, 2));
     // create a viewer object
     // and pass the frame_publisher and the map_publisher
 #ifdef USE_PANGOLIN_VIEWER
@@ -100,9 +84,6 @@ void stereo_tracking(const std::shared_ptr<openvslam::config>& cfg,
         frame2 = funcFormat::frame2Mat(data.get_fisheye_frame(2));
         input1 = frame1.clone();
         input2 = frame2.clone();
-
-        cv::fisheye::undistortImage(frame1, input1, intrinsicsL , distCoeffsL );
-        cv::fisheye::undistortImage(frame2, input2, intrinsicsR , distCoeffsR );
 
         t1 = std::chrono::steady_clock::now();
         tframe = std::chrono::duration_cast<ms>(t1 - t2).count();
