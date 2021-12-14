@@ -7,6 +7,17 @@
             "label": "build",
             "detail": "Build workspace (default)",
             "type": "shell",
+            "command": "mkdir build; cd build; cmake -DCMAKE_BUILD_TYPE=RELEASE -DUSE_PANGOLIN_VIEWER=ON -DINSTALL_PANGOLIN_VIEWER=ON -DUSE_STACK_TRACE_LOGGER=ON -DBUILD_EXAMPLES=ON ..; make -j6",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "debug",
+            "detail": "Build workspace (default)",
+            "type": "shell",
             "command": "mkdir build; cd build; cmake -DCMAKE_BUILD_TYPE=DEBUG -DUSE_PANGOLIN_VIEWER=ON -DINSTALL_PANGOLIN_VIEWER=ON -DUSE_STACK_TRACE_LOGGER=ON -DBUILD_EXAMPLES=ON ..; make -j6",
             "group": {
                 "kind": "build",
