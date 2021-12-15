@@ -1,2 +1,2 @@
 #!/bin/bash
-node /home/xavier/openvslam/vievier/app.js
+node /home/xavier/openvslam/viewer/app.js
