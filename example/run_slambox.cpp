@@ -234,7 +234,7 @@ void stereo_tracking(const std::shared_ptr<openvslam::config>& cfg,
         openvslam::util::yaml_optional_ref(cfg->yaml_node_, "SocketPublisher"), &SLAM, SLAM.get_frame_publisher(), SLAM.get_map_publisher());
 #endif
 
-    cv::Mat frame1, frame2, input1, input2;
+    cv::Mat frame1, frame2, input1, input2, tmp1, tmp2;
     double tframe;
 
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
@@ -249,8 +249,9 @@ void stereo_tracking(const std::shared_ptr<openvslam::config>& cfg,
             frame1 = funcFormat::frame2Mat(data.get_fisheye_frame(1));
             frame2 = funcFormat::frame2Mat(data.get_fisheye_frame(2));
 
-            rectifier.rectify(frame1, frame2, input1, input2);
-
+            rectifier.rectify(frame1, frame2, tmp1, tmp2);
+            cv::resize(tmp1, input1, cv::Size(tmp1.size().width/2, tmp1.size().height/2), cv::INTER_LINEAR);
+            cv::resize(tmp2, input2, cv::Size(tmp2.size().width/2, tmp2.size().height/2), cv::INTER_LINEAR);
             t1 = std::chrono::steady_clock::now();
             tframe = std::chrono::duration_cast<ms>(t1 - t2).count();
 
