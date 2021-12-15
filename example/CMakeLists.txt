@@ -35,54 +35,54 @@ endif()
 
 set(EXECUTABLE_TARGETS "")
 
-add_executable(run_camera_slam run_camera_slam.cc)
-list(APPEND EXECUTABLE_TARGETS run_camera_slam)
+# add_executable(run_camera_slam run_camera_slam.cc)
+# list(APPEND EXECUTABLE_TARGETS run_camera_slam)
 
-add_executable(run_camera_localization run_camera_localization.cc)
-list(APPEND EXECUTABLE_TARGETS run_camera_localization)
+# add_executable(run_camera_localization run_camera_localization.cc)
+# list(APPEND EXECUTABLE_TARGETS run_camera_localization)
 
-add_executable(run_image_slam run_image_slam.cc util/image_util.cc)
-list(APPEND EXECUTABLE_TARGETS run_image_slam)
+# add_executable(run_image_slam run_image_slam.cc util/image_util.cc)
+# list(APPEND EXECUTABLE_TARGETS run_image_slam)
 
-add_executable(run_image_localization run_image_localization.cc util/image_util.cc)
-list(APPEND EXECUTABLE_TARGETS run_image_localization)
+# add_executable(run_image_localization run_image_localization.cc util/image_util.cc)
+# list(APPEND EXECUTABLE_TARGETS run_image_localization)
 
-add_executable(run_video_slam run_video_slam.cc)
-list(APPEND EXECUTABLE_TARGETS run_video_slam)
+# add_executable(run_video_slam run_video_slam.cc)
+# list(APPEND EXECUTABLE_TARGETS run_video_slam)
 
-add_executable(run_video_localization run_video_localization.cc)
-list(APPEND EXECUTABLE_TARGETS run_video_localization)
+# add_executable(run_video_localization run_video_localization.cc)
+# list(APPEND EXECUTABLE_TARGETS run_video_localization)
 
-add_executable(run_euroc_slam run_euroc_slam.cc util/euroc_util.cc)
-list(APPEND EXECUTABLE_TARGETS run_euroc_slam)
+# add_executable(run_euroc_slam run_euroc_slam.cc util/euroc_util.cc)
+# list(APPEND EXECUTABLE_TARGETS run_euroc_slam)
 
-add_executable(run_euroc_localization run_euroc_localization.cc util/euroc_util.cc)
-list(APPEND EXECUTABLE_TARGETS run_euroc_localization)
+# add_executable(run_euroc_localization run_euroc_localization.cc util/euroc_util.cc)
+# list(APPEND EXECUTABLE_TARGETS run_euroc_localization)
 
-add_executable(run_kitti_slam run_kitti_slam.cc util/kitti_util.cc)
-list(APPEND EXECUTABLE_TARGETS run_kitti_slam)
+# add_executable(run_kitti_slam run_kitti_slam.cc util/kitti_util.cc)
+# list(APPEND EXECUTABLE_TARGETS run_kitti_slam)
 
-add_executable(run_tum_rgbd_slam run_tum_rgbd_slam.cc util/tum_rgbd_util.cc)
-list(APPEND EXECUTABLE_TARGETS run_tum_rgbd_slam)
+# add_executable(run_tum_rgbd_slam run_tum_rgbd_slam.cc util/tum_rgbd_util.cc)
+# list(APPEND EXECUTABLE_TARGETS run_tum_rgbd_slam)
 
-add_executable(run_tum_rgbd_localization run_tum_rgbd_localization.cc util/tum_rgbd_util.cc)
-list(APPEND EXECUTABLE_TARGETS run_tum_rgbd_localization)
+# add_executable(run_tum_rgbd_localization run_tum_rgbd_localization.cc util/tum_rgbd_util.cc)
+# list(APPEND EXECUTABLE_TARGETS run_tum_rgbd_localization)
 
 add_executable(run_slambox run_slambox.cpp util/realsense_util.cpp)
 target_link_libraries(run_slambox PRIVATE ${realsense2_LIBRARY})
 list(APPEND EXECUTABLE_TARGETS run_slambox)
 
-add_executable(run_realsense_t265 run_realsense_t265.cpp util/realsense_util.cpp)
-target_link_libraries(run_realsense_t265 PRIVATE ${realsense2_LIBRARY})
-list(APPEND EXECUTABLE_TARGETS run_realsense_t265)
+# add_executable(run_realsense_t265 run_realsense_t265.cpp util/realsense_util.cpp)
+# target_link_libraries(run_realsense_t265 PRIVATE ${realsense2_LIBRARY})
+# list(APPEND EXECUTABLE_TARGETS run_realsense_t265)
 
-add_executable(run_realsense_slam run_realsense_slam.cpp util/realsense_util.cpp)
-target_link_libraries(run_realsense_slam PRIVATE ${realsense2_LIBRARY})
-list(APPEND EXECUTABLE_TARGETS run_realsense_slam)
+# add_executable(run_realsense_slam run_realsense_slam.cpp util/realsense_util.cpp)
+# target_link_libraries(run_realsense_slam PRIVATE ${realsense2_LIBRARY})
+# list(APPEND EXECUTABLE_TARGETS run_realsense_slam)
 
-add_executable(realsense_test realsense_test.cpp util/realsense_util.cpp)
-target_link_libraries(realsense_test PRIVATE ${realsense2_LIBRARY})
-list(APPEND EXECUTABLE_TARGETS realsense_test)
+# add_executable(realsense_test realsense_test.cpp util/realsense_util.cpp)
+# target_link_libraries(realsense_test PRIVATE ${realsense2_LIBRARY})
+# list(APPEND EXECUTABLE_TARGETS realsense_test)
 
 foreach(EXECUTABLE_TARGET IN LISTS EXECUTABLE_TARGETS)
     # Set output directory for executables
