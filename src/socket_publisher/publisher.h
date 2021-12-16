@@ -29,6 +29,11 @@ public:
 
     void run();
 
+    /**
+     * Save settings for report generator
+     */
+    void create_report_config_file(const std::string &mapDir, const std::string &resultDir);
+
     /* thread controls */
     void request_pause();
     bool is_paused();
@@ -44,7 +49,7 @@ private:
     std::unique_ptr<socket_client> client_;
     std::unique_ptr<data_serializer> data_serializer_;
 
-    void callback(const std::string& message);
+    void callback(const std::string& message, const double value);
 
     /* thread controls */
     bool check_and_execute_pause();
@@ -59,6 +64,10 @@ private:
     std::mutex mtx_pause_;
     bool pause_is_requested_ = false;
     bool is_paused_ = true;
+
+    double dist_to_ground_{0.5};
+    double dist_to_ceiling_{1.0};
+    double brush_width_{0.8};
 };
 
 } // namespace socket_publisher

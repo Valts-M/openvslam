@@ -16,16 +16,21 @@ let receiveTimestamp = 0;
 
 let property = {
     CameraMode: 'Follow',
-    FixAngle: true,
+    FixAngle: false,
     LandmarkSize: 0.6,
     KeyframeSize: 0.5,
+    DistToFloor: 1.0,
+    DistToCeiling: 1.0,
+    BrushWidth: 0.8,
     CurrentFrameSize: 1.0,
     DrawGraph: true,
     DrawGrid: true,
     DrawPoints: true,
     LocalizationMode: false,
+    StartSignal: function () { },
+    StopSignal: function () { },
     ResetSignal: function () { },
-    StopSignal: function () { }
+    PauseSignal: function () { }
 };
 
 let graphicStats; // visualize fps of graphic refresh
@@ -80,7 +85,7 @@ function init() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     // create grid plane
-    grid = new THREE.GridHelper(500, 50);
+    grid = new THREE.GridHelper(6000, 600);
     scene.add(grid);
 
     // position and point the camera to the center of the scene
@@ -157,12 +162,17 @@ function initGui() {
     gui.add(property, 'KeyframeSize', 0, 4, 0.1).onChange(setKeyframeSize);
     gui.add(property, 'CurrentFrameSize', 0, 4, 0.1).onChange(setCurrentframeSize);
     gui.add(camera, 'far', 1000, 1000000, 1000).onChange(setFar);
+    gui.add(property, 'DistToCeiling', 0, 4, 0.1).onChange(setDistToCeiling);
+    gui.add(property, 'DistToFloor', 0, 4, 0.1).onChange(setDistToFloor);
+    gui.add(property, 'BrushWidth', 0, 2, 0.1).onChange(setBrushWidth);
     gui.add(property, 'DrawGraph').onChange(setGraphVis);
     gui.add(property, 'DrawGrid').onChange(setGridVis);
     gui.add(property, 'DrawPoints').onChange(setPointsVis);
     gui.add(property, 'LocalizationMode').onChange(setLocalizationMode);
-    gui.add(property, 'ResetSignal').domElement.children[0].innerHTML = "<button onclick='onClickReset()'>reset</button>";
+    gui.add(property, 'StartSignal').domElement.children[0].innerHTML = "<button onclick='onClickStart()'>start</button>";
     gui.add(property, 'StopSignal').domElement.children[0].innerHTML = "<button onclick='onClickTerminate()'>terminate</button>";
+    gui.add(property, 'ResetSignal').domElement.children[0].innerHTML = "<button onclick='onClickReset()'>reset</button>";
+    gui.add(property, 'PauseSignal').domElement.children[0].innerHTML = "<button onclick='onClickPause()'>pause</button>";
 }
 
 function setCameraMode(val) {
@@ -184,6 +194,15 @@ function setPointSize(val) {
 function setKeyframeSize(val) {
     val = Math.pow(2, val);
     cameraFrames.setKeyframeSize(val);
+}
+function setDistToFloor(val) {
+    socket.emit("signal", "DistToFloor", val);
+}
+function setDistToCeiling(val) {
+    socket.emit("signal", "DistToCeiling", val);
+}
+function setBrushWidth(val) {
+    socket.emit("signal", "BrushWidth", val);
 }
 function setCurrentframeSize(val) {
     val = Math.pow(2, val);
@@ -214,6 +233,12 @@ function onClickReset() {
 }
 function onClickTerminate() {
     socket.emit("signal", "terminate");
+}
+function onClickPause(){
+    socket.emit("signal", "pause");
+}
+function onClickStart(){
+    socket.emit("signal", "start");
 }
 
 // function that converts array that have size of 16 to matrix that shape of 4x4

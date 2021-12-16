@@ -34,8 +34,14 @@ void socket_client::on_open() {
 void socket_client::on_receive(const sio::event& event) {
     try {
         const std::string message = event.get_message()->get_string();
+        double value{0.0};
+        // spdlog::error(event.get_messages().size());
+        if (event.get_messages().size() > 1)
+        {
+            value = event.get_messages().at(1)->get_double();
+        }
         if (callback_) {
-            callback_(message);
+            callback_(message, value);
         }
     }
     catch (std::exception& ex) {

@@ -4,6 +4,9 @@
 #include "openvslam/publish/frame_publisher.h"
 #include "openvslam/util/yaml.h"
 
+#include <nlohmann/json.hpp>
+#include <fstream>
+
 namespace socket_publisher {
 
 publisher::publisher(const YAML::Node& yaml_node, openvslam::system* system,
@@ -17,7 +20,7 @@ publisher::publisher(const YAML::Node& yaml_node, openvslam::system* system,
         frame_publisher, map_publisher,
         yaml_node["publish_points"].as<bool>(true)));
 
-    client_->set_signal_callback(std::bind(&publisher::callback, this, std::placeholders::_1));
+    client_->set_signal_callback(std::bind(&publisher::callback, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void publisher::run() {
@@ -63,7 +66,7 @@ void publisher::run() {
     terminate();
 }
 
-void publisher::callback(const std::string& message) {
+void publisher::callback(const std::string& message, const double value) {
     if (message == "disable_mapping_mode") {
         system_->disable_mapping_module();
     }
@@ -75,6 +78,59 @@ void publisher::callback(const std::string& message) {
     }
     else if (message == "terminate") {
         request_terminate();
+    }
+    else if(message == "pause")
+    {
+        system_->pause_tracker();
+    }
+    else if(message == "start")
+    {
+        system_->resume_tracker();
+    }
+    else if(message == "DistToGround") 
+    {
+        // dist_to_ground_ = value;
+    }
+    else if(message == "DistToCeiling") 
+    {
+        // dist_to_ceiling_ = value;
+    }
+    else if(message == "BrushWidth")
+    { 
+        // brush_width_ = value;
+    }
+    // spdlog::info(value);
+}
+
+void publisher::create_report_config_file(const std::string &mapDir, const std::string &resultDir){
+    using json = nlohmann::json;
+
+    json config = {
+        {"Directories", {
+            {"TrajectoryDir", resultDir},
+            {"ResultDir", resultDir},
+            {"MapDir", mapDir}
+        }},
+        {"Parameters", {
+            {"CeilingHeight", dist_to_ceiling_},
+            {"FloorHeight", dist_to_ground_},
+            {"BrushWidth", brush_width_}
+        }}
+    };
+
+    try
+    {
+        std::ofstream fileWriter(resultDir + "/config.json");
+        if(!fileWriter.is_open())
+        {
+            std::cerr << "Couldn't create file to write report config!\n";
+            return;
+        }
+        fileWriter << std::setw(4) << config << '\n';
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
     }
 }
 

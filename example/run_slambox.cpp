@@ -187,7 +187,7 @@ void rgbd_tracking(const std::shared_ptr<openvslam::config>& cfg,
 #ifdef USE_PANGOLIN_VIEWER
         viewer.create_report_config_file(mapSavePath.string(), fullSavePath.string());
 #elif USE_SOCKET_PUBLISHER
-        // publisher.run();
+        publisher.create_report_config_file(mapSavePath.string(), fullSavePath.string());
 #endif
     }
 }

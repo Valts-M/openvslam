@@ -19,7 +19,7 @@ public:
         socket_->emit(tag, buffer);
     }
 
-    void set_signal_callback(std::function<void(std::string)> callback) {
+    void set_signal_callback(std::function<void(std::string, double)> callback) {
         callback_ = callback;
     }
 
@@ -32,7 +32,7 @@ private:
     sio::client client_;
     sio::socket::ptr socket_;
 
-    std::function<void(std::string)> callback_;
+    std::function<void(std::string, double)> callback_;
 };
 
 } // namespace socket_publisher
