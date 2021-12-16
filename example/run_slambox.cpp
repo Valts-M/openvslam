@@ -75,8 +75,8 @@ void rgbd_tracking(const std::shared_ptr<openvslam::config>& cfg,
     // RealSense settings
     rs2::pipeline pipeline;
     rs2::config config;
-    config.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_BGR8, 30);
-    config.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 30);
+    config.enable_stream(RS2_STREAM_COLOR, cfg->camera_->cols_, cfg->camera_->rows_, RS2_FORMAT_BGR8, cfg->camera_->fps_);
+    config.enable_stream(RS2_STREAM_DEPTH, cfg->camera_->cols_, cfg->camera_->rows_, RS2_FORMAT_Z16, cfg->camera_->fps_);
 
     rs2::pipeline_profile rs2_cfg = pipeline.start(config);
 

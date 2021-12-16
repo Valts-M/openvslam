@@ -18,8 +18,8 @@ Camera:
   p2: 0.0
   k3: 0.0
 
-  fps: 30.0
-  cols: 640
+  fps: 30
+  cols: 848
   rows: 480
   focal_x_baseline: 31.102907
 
