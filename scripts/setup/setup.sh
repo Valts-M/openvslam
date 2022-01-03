@@ -5,7 +5,7 @@ sudo apt update -y
 sudo apt upgrade -y --no-install-recommends
 
 # basic dependencies
-sudo apt install -y build-essential pkg-config cmake git wget curl unzip
+sudo apt install -y build-essential pkg-config cmake git wget curl unzip python3-pip
 
 # python dependencies
 pip3 install msgpack
@@ -40,13 +40,14 @@ echo "CXX=\"/usr/bin/g++-11\"" >> ~/.bashrc
 source ~/.bashrc
 
 # Download and install Realsense drivers
-cd
-sudo apt-key adv --keyserver keys.gnupg.net --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE || sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE
-sudo add-apt-repository "deb https://librealsense.intel.com/Debian/apt-repo bionic main" -u
-sudo apt-get install -y librealsense2-utils
-sudo apt-get install -y librealsense2-dev
+#cd
+#sudo apt-key adv --keyserver keys.gnupg.net --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE || sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE
+#sudo add-apt-repository "deb https://librealsense.intel.com/Debian/apt-repo bionic main" -u
+s#udo apt-get install -y librealsense2-utils
+su#do apt-get install -y librealsense2-dev
 
 # Download and install Eigen
+cd
 wget -q https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.bz2
 tar xf eigen-3.3.7.tar.bz2
 rm -rf eigen-3.3.7.tar.bz2
@@ -94,6 +95,19 @@ git checkout ad8b5f83222291c51b4800d5a5873b0e90a0cf81
 mkdir build && cd build
 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local ..
 make -j6
+sudo make install
+
+# Download and install SocketViewer
+cd
+sudo apt install -y libprotobuf-dev protobuf-compiler
+wget -q https://github.com/google/protobuf/archive/v3.6.1.tar.gz
+tar xf v3.6.1.tar.gz
+cd protobuf-3.6.1
+./autogen.sh
+./configure \
+    --prefix=/usr/local \
+    --enable-static=no
+make -j4
 sudo make install
 
 # Build openvslam
