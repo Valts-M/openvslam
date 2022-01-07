@@ -27,6 +27,11 @@ sudo apt install -y libyaml-cpp-dev libgoogle-glog-dev libgflags-dev python3-mat
 # Pangolin dependencies
 sudo apt install -y libglew-dev
 
+
+# (if you plan on using SocketViewer)
+# Protobuf dependencies
+apt install -y autogen autoconf libtool
+
 # Node.js
 curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
 sudo apt install -y nodejs
@@ -40,11 +45,11 @@ echo "CXX=\"/usr/bin/g++-11\"" >> ~/.bashrc
 source ~/.bashrc
 
 # Download and install Realsense drivers
-#cd
-#sudo apt-key adv --keyserver keys.gnupg.net --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE || sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE
-#sudo add-apt-repository "deb https://librealsense.intel.com/Debian/apt-repo bionic main" -u
-s#udo apt-get install -y librealsense2-utils
-su#do apt-get install -y librealsense2-dev
+cd
+sudo apt-key adv --keyserver keys.gnupg.net --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE || sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE
+sudo add-apt-repository "deb https://librealsense.intel.com/Debian/apt-repo bionic main" -u
+sudo apt-get install -y librealsense2-utils
+sudo apt-get install -y librealsense2-dev
 
 # Download and install Eigen
 cd
@@ -100,19 +105,23 @@ sudo make install
 # Download and install SocketViewer
 cd
 sudo apt install -y libprotobuf-dev protobuf-compiler
-wget -q https://github.com/google/protobuf/archive/v3.6.1.tar.gz
-tar xf v3.6.1.tar.gz
-cd protobuf-3.6.1
-./autogen.sh
-./configure \
-    --prefix=/usr/local \
-    --enable-static=no
+git clone https://github.com/shinsumicco/socket.io-client-cpp.git
+cd socket.io-client-cpp
+git submodule init
+git submodule update
+mkdir build && cd build
+cmake \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DBUILD_UNIT_TESTS=OFF \
+    ..
 make -j4
-sudo make install
+make install
+
 
 # Build openvslam
 cd
 cd openvslam
 mkdir build && cd build
-cmake -DUSE_PANGOLIN_VIEWER=ON -DINSTALL_PANGOLIN_VIEWER=ON -DUSE_SOCKET_PUBLISHER=OFF -DUSE_STACK_TRACE_LOGGER=ON -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=ON ..
+cmake -DUSE_PANGOLIN_VIEWER=ON -DINSTALL_PANGOLIN_VIEWER=ON -DUSE_SOCKET_PUBLISHER=OFF -DUSE_STACK_TRACE_LOGGER=ON -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=ON -DCMAKE_CXX_COMPILER=/usr/bin/g++-11 -DCMAKE_CC_COMPILER=/usr/bin/gcc-11 ..
 make -j6
