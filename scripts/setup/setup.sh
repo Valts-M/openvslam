@@ -27,10 +27,9 @@ sudo apt install -y libyaml-cpp-dev libgoogle-glog-dev libgflags-dev python3-mat
 # Pangolin dependencies
 sudo apt install -y libglew-dev
 
-
 # (if you plan on using SocketViewer)
 # Protobuf dependencies
-apt install -y autogen autoconf libtool
+sudo apt install -y autogen autoconf libtool
 
 # Node.js
 curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
@@ -71,7 +70,7 @@ sudo make install
 #mkdir -p build && cd build
 #cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DENABLE_CXX11=ON -DBUILD_DOCS=OFF -DBUILD_EXAMPLES=OFF -DBUILD_JASPER=OFF -DBUILD_OPENEXR=OFF -DBUILD_PERF_TESTS=OFF -DBUILD_TESTS=OFF -DWITH_EIGEN=ON -DWITH_FFMPEG=ON -DWITH_OPENMP=ON ..
 #make -j4
-#make install
+#sudo make install
 
 # Download and install FBoW
 cd
@@ -116,8 +115,7 @@ cmake \
     -DBUILD_UNIT_TESTS=OFF \
     ..
 make -j4
-make install
-
+sudo make install
 
 # Build openvslam
 cd
