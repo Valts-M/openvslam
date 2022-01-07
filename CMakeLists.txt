@@ -114,6 +114,18 @@ if(NOT OpenCV_FOUND)
 endif()
 message(STATUS "Use OpenCV ${OpenCV_VERSION}")
 
+if(USE_CUDA)
+    find_package(CUDA QUIET REQUIRED)
+    set(CUDA_PROPAGATE_HOST_FLAGS OFF)
+    SET(CUDA_HOST_COMPILER /usr/bin/g++)
+    LIST(APPEND CUDA_NVCC_FLAGS "--compiler-options -fno-strict-aliasing -use_fast_math")
+    message(STATUS "Use CUDA ${CUDA_VERSION}")
+
+    cuda_include_directories(
+    ${CUDA_TOOLKIT_ROOT_DIR}/samples/common/inc
+    )   
+endif()
+
 # ----- Install configuration -----
 
 include(CMakePackageConfigHelpers)

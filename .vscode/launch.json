@@ -1,0 +1,78 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Mapping",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/run_slambox",
+            "args": ["--debug", "-v", "${workspaceFolder}/vocab/orb_vocab.fbow", "-c", "${workspaceFolder}/example/realsense/realsense-T265.yaml", "-s", "/home/valts/test"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build",
+            "preLaunchTask": "build",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": false
+                }
+            ]
+        },
+        {
+            "name": "Localization",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/run_slambox",
+            "args": ["-v", "${workspaceFolder}/vocab/orb_vocab.fbow", "-s", "/home/valts/test", "-c", "${workspaceFolder}/example/realsense/realsense-T265.yaml", "-l"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build",
+            "preLaunchTask": "build",
+            "environment": [],
+
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Realsense_test",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/realsense_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build",
+            "preLaunchTask": "build",
+            "environment": [],
+
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+    ],
+    "inputs": [
+        {
+          "id": "program",
+          "type": "promptString",
+          "description": "Program name",
+          "default": "run_realsense_slam"
+        }
+      ]
+}
