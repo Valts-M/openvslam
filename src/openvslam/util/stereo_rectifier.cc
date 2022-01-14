@@ -16,9 +16,9 @@ stereo_rectifier::stereo_rectifier(const std::shared_ptr<openvslam::config>& cfg
 stereo_rectifier::stereo_rectifier(camera::base* camera, const YAML::Node& yaml_node)
     : model_type_(load_model_type(yaml_node)) {
     spdlog::debug("CONSTRUCT: util::stereo_rectifier");
-    if (camera->setup_type_ != camera::setup_type_t::Stereo) {
-        throw std::runtime_error("When stereo rectification is used, 'setup' must be set to 'stereo'");
-    }
+    // if (camera->setup_type_ != camera::setup_type_t::Stereo) {
+    //     throw std::runtime_error("When stereo rectification is used, 'setup' must be set to 'stereo'");
+    // }
     if (camera->model_type_ != camera::model_type_t::Perspective) {
         throw std::runtime_error("When stereo rectification is used, 'model' must be set to 'perspective'");
     }
@@ -63,6 +63,10 @@ void stereo_rectifier::rectify(const cv::Mat& in_img_l, const cv::Mat& in_img_r,
                                cv::Mat& out_img_l, cv::Mat& out_img_r) const {
     cv::remap(in_img_l, out_img_l, undist_map_x_l_, undist_map_y_l_, cv::INTER_LINEAR);
     cv::remap(in_img_r, out_img_r, undist_map_x_r_, undist_map_y_r_, cv::INTER_LINEAR);
+}
+
+void stereo_rectifier::rectify(const cv::Mat& in_img_l, cv::Mat& out_img_l) const {
+    cv::remap(in_img_l, out_img_l, undist_map_x_l_, undist_map_y_l_, cv::INTER_LINEAR);
 }
 
 cv::Mat stereo_rectifier::parse_vector_as_mat(const cv::Size& shape, const std::vector<double>& vec) {

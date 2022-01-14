@@ -1,0 +1,86 @@
+#==============#
+# Camera Model #
+#==============#
+
+Camera:
+  name: "Realsense T265"
+  setup: "stereo"
+  model: "perspective"
+
+  fx: 142.534606934
+  fy: 143.074203491
+  cx: 209.909545898
+  cy: 199.266799927 
+
+  k1: 0.0
+  k2: 0.0
+  p1: 0.0
+  p2: 0.0
+  k3: 0.0
+
+  fps: 30.0
+  cols: 848
+  rows: 800
+  focal_x_baseline: 18.244456041
+
+  color_order: "Gray"
+
+#======================#
+# Stereo Rectification #
+#======================#
+
+# original intrinsic parameters (K, D) and stereo-recitification parameters (R)
+# matrices (K, R) are written in row-major order
+
+StereoRectifier:
+  model: "fisheye"
+  K_left: [142.534606934,0.0,209.909545898,0.0,143.074203491,199.266799927,0.0,0.0,1.0]
+  D_left: [-0.000909561815205961,0.0341920182108879,-0.0320723913609982,0.00466104596853256]
+  R_left: [1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0]
+  K_right: [142.339096069,0.0,214.632095337,0.0,142.95539856,200.280807495, 0.0, 0.0, 1.0]
+  D_right: [-0.000995491282083094,0.0358942113816738,-0.0343085005879402,0.00534299295395613]
+  R_right: [0.999977,-0.00216216,0.00644792,0.00218238,0.999993,-0.0031303,-0.00644111,0.00314429,0.999974]
+
+#=====================#
+# Tracking Parameters #
+#=====================#
+
+Tracking:
+  max_num_keypoints: 1000
+  ini_max_num_keypoints: 2000
+  depth_threshold: 40.0
+  depthmap_factor: 1000.0
+
+#================#
+# ORB Parameters #
+#================#
+
+Feature:
+  scale_factor: 1.2
+  num_levels: 8
+  ini_fast_threshold: 20
+  min_fast_threshold: 7
+
+#====================#
+# Mapping Parameters #
+#====================#
+
+Mapping:
+  baseline_dist_thr: 0.07471049682
+  redundant_obs_ratio_thr: 0.9
+
+#===========================#
+# PangolinViewer Parameters #
+#===========================#
+
+PangolinViewer:
+  keyframe_size: 0.05
+  keyframe_line_width: 1
+  graph_line_width: 1
+  point_size: 2
+  camera_size: 0.08
+  camera_line_width: 3
+  viewpoint_x: 0
+  viewpoint_y: -0.9
+  viewpoint_z: -1.9
+  viewpoint_f: 400
