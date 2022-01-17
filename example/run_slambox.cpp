@@ -45,9 +45,51 @@ const std::string currentDateTime() {
     tstruct = *gmtime(&now);
     // Visit http://en.cppreference.com/w/cpp/chrono/c/strftime
     // for more information about date/time format
-    strftime(buf, sizeof(buf), "%Y-%m-%d.%H:%M:%S", &tstruct);
+    strftime(buf, sizeof(buf), "%Y-%m-%d.%H-%M-%S", &tstruct);
 
     return buf;
+}
+
+void save_traj(const std::string& save_dir, const bool localization_mode, const openvslam::system& SLAM)
+{
+    fs::path savePath{save_dir};
+    if (!fs::exists(savePath))
+        fs::create_directories(savePath);
+
+    fs::path latestSymlink{savePath};
+    latestSymlink.append("latest");
+
+    if (!localization_mode) {
+        fs::path newMapPath{savePath};
+        newMapPath.append("map-" + currentDateTime());
+        fs::create_directory(newMapPath);
+        if (fs::exists(latestSymlink))
+            fs::remove(latestSymlink);
+        fs::create_symlink(newMapPath, latestSymlink);
+        // output the map database
+        SLAM.save_map_database(latestSymlink.string() + "/map.msg");
+        SLAM.save_frame_trajectory(latestSymlink.string() + "/mapping_trajectory.txt", "KITTI");
+    }
+    else {
+        savePath.append("latest");
+        fs::path fullSavePath{fs::read_symlink(savePath)};
+        fs::path mapSavePath{fs::read_symlink(savePath)};
+        std::string dirName = "loc-" + currentDateTime();
+        savePath.append(dirName);
+        fullSavePath.append(dirName);
+        fs::create_directory(savePath);
+        latestSymlink.append("latest");
+        if (fs::exists(latestSymlink))
+            fs::remove(latestSymlink);
+        fs::create_symlink(fullSavePath, latestSymlink);
+        // output the trajectories for evaluation
+        SLAM.save_frame_trajectory(latestSymlink.string() + "/trajectory.txt", "KITTI");
+#ifdef USE_PANGOLIN_VIEWER
+        viewer.create_report_config_file(mapSavePath.string(), fullSavePath.string());
+#elif USE_SOCKET_PUBLISHER
+        publisher.create_report_config_file(mapSavePath.string(), fullSavePath.string());
+#endif
+    }
 }
 
 void rgbd_tracking(const std::shared_ptr<openvslam::config>& cfg,
@@ -56,7 +98,6 @@ void rgbd_tracking(const std::shared_ptr<openvslam::config>& cfg,
                    const bool localization_mode) {
     // initialize a SLAM system
     openvslam::system SLAM(cfg, vocab_file_path);
-    std::cerr << "here" << std::endl;
 
     if (localization_mode) {
         // startup the SLAM process (don't need to initialize a map since we're only localizing)
@@ -69,8 +110,6 @@ void rgbd_tracking(const std::shared_ptr<openvslam::config>& cfg,
         // startup the SLAM process
         SLAM.startup();
     }
-
-    std::cerr << "here" << std::endl;
 
     // RealSense settings
     rs2::pipeline pipeline;
@@ -119,16 +158,6 @@ void rgbd_tracking(const std::shared_ptr<openvslam::config>& cfg,
             SLAM.feed_RGBD_frame(input1, input2, tframe);
 
             t2 = t1;
-            std::ostringstream strs;
-            strs << tframe;
-            std::string str = strs.str() + " ms";
-
-            cv::Size size = input1.size();
-            cv::putText(input1, str, cv::Point(10, size.height - 10), inforerFontA, 1, inforerColorFA, 1, cv::LINE_AA);
-            cv::putText(input1, str, cv::Point(10, size.height - 10), inforerFontB, 1, inforerColorFB, 1, cv::LINE_AA);
-
-            //cv::imshow("Road facing camera", input1);
-            //cv::imshow("Depth", input2);
 
             if (SLAM.terminate_is_requested())
                 break;
@@ -152,44 +181,7 @@ void rgbd_tracking(const std::shared_ptr<openvslam::config>& cfg,
     // shutdown the SLAM process
     SLAM.shutdown();
 
-    fs::path savePath{save_dir};
-    if (!fs::exists(savePath))
-        fs::create_directories(savePath);
-
-    fs::path latestSymlink{savePath};
-    latestSymlink.append("latest");
-
-    if (!localization_mode) {
-        fs::path newMapPath{savePath};
-        newMapPath.append("map-" + currentDateTime());
-        fs::create_directory(newMapPath);
-        if (fs::exists(latestSymlink))
-            fs::remove(latestSymlink);
-        fs::create_symlink(newMapPath, latestSymlink);
-        // output the map database
-        SLAM.save_map_database(latestSymlink.string() + "/map.msg");
-        SLAM.save_frame_trajectory(latestSymlink.string() + "/mapping_trajectory.txt", "KITTI");
-    }
-    else {
-        savePath.append("latest");
-        fs::path fullSavePath{fs::read_symlink(savePath)};
-        fs::path mapSavePath{fs::read_symlink(savePath)};
-        std::string dirName = "loc-" + currentDateTime();
-        savePath.append(dirName);
-        fullSavePath.append(dirName);
-        fs::create_directory(savePath);
-        latestSymlink.append("latest");
-        if (fs::exists(latestSymlink))
-            fs::remove(latestSymlink);
-        fs::create_symlink(fullSavePath, latestSymlink);
-        // output the trajectories for evaluation
-        SLAM.save_frame_trajectory(latestSymlink.string() + "/trajectory.txt", "KITTI");
-#ifdef USE_PANGOLIN_VIEWER
-        viewer.create_report_config_file(mapSavePath.string(), fullSavePath.string());
-#elif USE_SOCKET_PUBLISHER
-        publisher.create_report_config_file(mapSavePath.string(), fullSavePath.string());
-#endif
-    }
+    save_traj(save_dir, localization_mode, SLAM);
 }
 
 void mono_tracking(const std::shared_ptr<openvslam::config>& cfg,
@@ -257,9 +249,6 @@ void mono_tracking(const std::shared_ptr<openvslam::config>& cfg,
             SLAM.feed_monocular_frame(input1, tframe);
 
             t2 = t1;
-            std::ostringstream strs;
-            strs << tframe;
-            std::string str = strs.str() + " ms";
 
             if (SLAM.terminate_is_requested())
                 break;
@@ -283,44 +272,7 @@ void mono_tracking(const std::shared_ptr<openvslam::config>& cfg,
     // shutdown the SLAM process
     SLAM.shutdown();
 
-    fs::path savePath{save_dir};
-    if (!fs::exists(savePath))
-        fs::create_directories(savePath);
-
-    fs::path latestSymlink{savePath};
-    latestSymlink.append("latest");
-
-    if (!localization_mode) {
-        fs::path newMapPath{savePath};
-        newMapPath.append("map-" + currentDateTime());
-        fs::create_directory(newMapPath);
-        if (fs::exists(latestSymlink))
-            fs::remove(latestSymlink);
-        fs::create_symlink(newMapPath, latestSymlink);
-        // output the map database
-        SLAM.save_map_database(latestSymlink.string() + "/map.msg");
-        SLAM.save_frame_trajectory(latestSymlink.string() + "/mapping_trajectory.txt", "KITTI");
-    }
-    else {
-        savePath.append("latest");
-        fs::path fullSavePath{fs::read_symlink(savePath)};
-        fs::path mapSavePath{fs::read_symlink(savePath)};
-        std::string dirName = "loc-" + currentDateTime();
-        savePath.append(dirName);
-        fullSavePath.append(dirName);
-        fs::create_directory(savePath);
-        latestSymlink.append("latest");
-        if (fs::exists(latestSymlink))
-            fs::remove(latestSymlink);
-        fs::create_symlink(fullSavePath, latestSymlink);
-        // output the trajectories for evaluation
-        SLAM.save_frame_trajectory(latestSymlink.string() + "/trajectory.txt", "KITTI");
-#ifdef USE_PANGOLIN_VIEWER
-        viewer.create_report_config_file(mapSavePath.string(), fullSavePath.string());
-#elif USE_SOCKET_PUBLISHER
-        publisher.create_report_config_file(mapSavePath.string(), fullSavePath.string());
-#endif
-    }
+    save_traj(save_dir, localization_mode, SLAM);
 }
 
 void stereo_tracking(const std::shared_ptr<openvslam::config>& cfg,
@@ -329,7 +281,6 @@ void stereo_tracking(const std::shared_ptr<openvslam::config>& cfg,
                    const bool localization_mode) {
     // initialize a SLAM system
     openvslam::system SLAM(cfg, vocab_file_path);
-    std::cerr << "here" << std::endl;
 
     if (localization_mode) {
         // startup the SLAM process (don't need to initialize a map since we're only localizing)
@@ -342,8 +293,6 @@ void stereo_tracking(const std::shared_ptr<openvslam::config>& cfg,
         // startup the SLAM process
         SLAM.startup();
     }
-
-    std::cerr << "here" << std::endl;
 
     // RealSense settings
     rs2::pipeline pipeline;
@@ -385,20 +334,12 @@ void stereo_tracking(const std::shared_ptr<openvslam::config>& cfg,
             t1 = std::chrono::steady_clock::now();
             tframe = std::chrono::duration_cast<ms>(t1 - t2).count();
 
-            // SLAM.feed_RGBD_frame(input1, input2, tframe);
             SLAM.feed_stereo_frame(input1, input2, tframe);
 
             t2 = t1;
             std::ostringstream strs;
             strs << tframe;
             std::string str = strs.str() + " ms";
-
-            cv::Size size = input1.size();
-            cv::putText(input1, str, cv::Point(10, size.height - 10), inforerFontA, 1, inforerColorFA, 1, cv::LINE_AA);
-            cv::putText(input1, str, cv::Point(10, size.height - 10), inforerFontB, 1, inforerColorFB, 1, cv::LINE_AA);
-
-            //cv::imshow("Road facing camera", input1);
-            //cv::imshow("Depth", input2);
 
             if (SLAM.terminate_is_requested())
                 break;
@@ -422,44 +363,7 @@ void stereo_tracking(const std::shared_ptr<openvslam::config>& cfg,
     // shutdown the SLAM process
     SLAM.shutdown();
 
-    fs::path savePath{save_dir};
-    if (!fs::exists(savePath))
-        fs::create_directories(savePath);
-
-    fs::path latestSymlink{savePath};
-    latestSymlink.append("latest");
-
-    if (!localization_mode) {
-        fs::path newMapPath{savePath};
-        newMapPath.append("map-" + currentDateTime());
-        fs::create_directory(newMapPath);
-        if (fs::exists(latestSymlink))
-            fs::remove(latestSymlink);
-        fs::create_symlink(newMapPath, latestSymlink);
-        // output the map database
-        SLAM.save_map_database(latestSymlink.string() + "/map.msg");
-        SLAM.save_frame_trajectory(latestSymlink.string() + "/mapping_trajectory.txt", "KITTI");
-    }
-    else {
-        savePath.append("latest");
-        fs::path fullSavePath{fs::read_symlink(savePath)};
-        fs::path mapSavePath{fs::read_symlink(savePath)};
-        std::string dirName = "loc-" + currentDateTime();
-        savePath.append(dirName);
-        fullSavePath.append(dirName);
-        fs::create_directory(savePath);
-        latestSymlink.append("latest");
-        if (fs::exists(latestSymlink))
-            fs::remove(latestSymlink);
-        fs::create_symlink(fullSavePath, latestSymlink);
-        // output the trajectories for evaluation
-        SLAM.save_frame_trajectory(latestSymlink.string() + "/trajectory.txt", "KITTI");
-#ifdef USE_PANGOLIN_VIEWER
-        viewer.create_report_config_file(mapSavePath.string(), fullSavePath.string());
-#elif USE_SOCKET_PUBLISHER
-        publisher.create_report_config_file(mapSavePath.string(), fullSavePath.string());
-#endif
-    }
+    save_traj(save_dir, localization_mode, SLAM);
 }
 
 int main(int argc, char* argv[]) {
