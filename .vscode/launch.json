@@ -29,7 +29,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/run_slambox",
-            "args": ["-v", "${workspaceFolder}/vocab/orb_vocab.fbow", "-s", "/home/valts/test", "-c", "${workspaceFolder}/example/realsense/realsense-T265.yaml", "-l"],
+            "args": ["-v", "${workspaceFolder}/vocab/orb_vocab.fbow", "-s", "/home/valts/test", "-c", "${workspaceFolder}/example/realsense/realsense-T265_mono.yaml", "-l"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/build",
             "preLaunchTask": "build",

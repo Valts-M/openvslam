@@ -10,6 +10,10 @@
 
 #include <fstream>
 
+#define M_PI_2X 6.28318530718
+#define UPDATE_DIST 0.1
+#define UPDATE_ANG 0.174533
+
 namespace openvslam {
 namespace io {
 
@@ -55,6 +59,10 @@ void trajectory_io::save_frame_trajectory(const std::string& path, const std::st
 
     int offset = rk_itr->first;
     unsigned int prev_frm_id = 0;
+    double prev_x = 0;
+    double prev_y = 0;
+    double prev_yaw = 0;
+
     for (unsigned int i = 0; i < num_valid_frms; ++i, ++rk_itr, ++rc_itr) {
         // check frame ID
         assert(rk_itr->first == rc_itr->first);
@@ -101,6 +109,26 @@ void trajectory_io::save_frame_trajectory(const std::string& path, const std::st
                 << std::setprecision(9)
                 << trans_wc(0) << " " << trans_wc(1) << " " << trans_wc(2) << " "
                 << quat_wc.x() << " " << quat_wc.y() << " " << quat_wc.z() << " " << quat_wc.w() << std::endl;
+        }
+        else if (format == "BOX"){
+            // z = forward
+            // y = down
+            // x = right
+            const double y = -cam_pose_wc(0, 3);
+            const double x = cam_pose_wc(2, 3);
+            const double yaw = atan2(-cam_pose_cw(2, 0), cam_pose_cw(2, 2));
+
+            if(std::abs(x - prev_x) > UPDATE_DIST || std::abs(y - prev_y) > UPDATE_DIST || std::abs(yaw - prev_yaw) > UPDATE_ANG)
+            {
+                ofs << std::setprecision(9)
+                    << "x = " << x << "\t\ty = " << -y
+                    << "\t\tyaw = " << yaw
+                    << "\t\tts = " << std::setprecision(15) << timestamps.at(frm_id) 
+                    << '\n';
+                prev_x=x;
+                prev_y=y;
+                prev_yaw=yaw;
+            }
         }
         else {
             throw std::runtime_error("Not implemented: trajectory format \"" + format + "\"");

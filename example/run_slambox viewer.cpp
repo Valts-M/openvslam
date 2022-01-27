@@ -13,7 +13,6 @@
 #include "openvslam/util/stereo_rectifier.h"
 #include "openvslam/util/image_converter.h"
 #include "openvslam/util/yaml.h"
-#include "openvslam/publish/map_publisher.h"
 
 #include <iostream>
 #include <fstream>
@@ -21,13 +20,12 @@
 #include <string>
 #include <stdio.h>
 #include <time.h>
-#include <filesystem>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <spdlog/spdlog.h>
 #include <popl.hpp>
-#include <nlohmann/json.hpp>
+#include <filesystem>
 
 #ifdef USE_STACK_TRACE_LOGGER
 #include <glog/logging.h>
@@ -52,18 +50,8 @@ const std::string curr_date_time() {
     return buf;
 }
 
-void update_curr_pos(openvslam::Mat44_t pose){
-    double y = -pose(0, 3);
-    double x = pose(2, 3);
-    const double yaw = atan2(-pose(2, 0), pose(2, 2));
-    std::cout << "x=" << x << " y=" << y <<  " yaw=" << yaw << '\n';
-}
-
-double get_ts(){
-    return static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count());
-}
-
-void save_traj(const std::string& save_dir, const bool localization_mode, const openvslam::system& SLAM){
+void save_traj(const std::string& save_dir, const bool localization_mode, const openvslam::system& SLAM)
+{
     fs::path savePath{save_dir};
     if (!fs::exists(savePath))
         fs::create_directories(savePath);
@@ -95,26 +83,21 @@ void save_traj(const std::string& save_dir, const bool localization_mode, const 
             fs::remove(latestSymlink);
         fs::create_symlink(fullSavePath, latestSymlink);
         // output the trajectories for evaluation
-        SLAM.save_frame_trajectory(latestSymlink.string() + "/trajectory.txt", "BOX");
+        SLAM.save_frame_trajectory(latestSymlink.string() + "/trajectory.txt", "KITTI");
+#ifdef USE_PANGOLIN_VIEWER
+        viewer.create_report_config_file(mapSavePath.string(), fullSavePath.string());
+#elif USE_SOCKET_PUBLISHER
+        publisher.create_report_config_file(mapSavePath.string(), fullSavePath.string());
+#endif
     }
 }
 
-void mono_tracking(const std::shared_ptr<openvslam::config>& cfg,
+void rgbd_tracking(const std::shared_ptr<openvslam::config>& cfg,
                    const std::string& vocab_file_path,
                    const std::string& save_dir,
                    const bool localization_mode) {
     // initialize a SLAM system
     openvslam::system SLAM(cfg, vocab_file_path);
-
-        // create a viewer object
-    // and pass the frame_publisher and the map_publisher
-#ifdef USE_PANGOLIN_VIEWER
-    pangolin_viewer::viewer viewer(
-        openvslam::util::yaml_optional_ref(cfg->yaml_node_, "PangolinViewer"), &SLAM, SLAM.get_frame_publisher(), SLAM.get_map_publisher());
-#elif USE_SOCKET_PUBLISHER
-    socket_publisher::publisher publisher(
-        openvslam::util::yaml_optional_ref(cfg->yaml_node_, "SocketPublisher"), &SLAM, SLAM.get_frame_publisher(), SLAM.get_map_publisher());
-#endif
 
     if (localization_mode) {
         // startup the SLAM process (don't need to initialize a map since we're only localizing)
@@ -128,9 +111,100 @@ void mono_tracking(const std::shared_ptr<openvslam::config>& cfg,
         SLAM.startup();
     }
 
-    auto map_publisher = SLAM.get_map_publisher();
+    // RealSense settings
+    rs2::pipeline pipeline;
+    rs2::config config;
+    config.enable_stream(RS2_STREAM_COLOR, cfg->camera_->cols_, cfg->camera_->rows_, RS2_FORMAT_BGR8, cfg->camera_->fps_);
+    config.enable_stream(RS2_STREAM_DEPTH, cfg->camera_->cols_, cfg->camera_->rows_, RS2_FORMAT_Z16, cfg->camera_->fps_);
 
-    bool pause_slam = false;
+    rs2::pipeline_profile rs2_cfg = pipeline.start(config);
+
+    rs2::align alignTo(RS2_STREAM_COLOR);
+
+    // create a viewer object
+    // and pass the frame_publisher and the map_publisher
+#ifdef USE_PANGOLIN_VIEWER
+    pangolin_viewer::viewer viewer(
+        openvslam::util::yaml_optional_ref(cfg->yaml_node_, "PangolinViewer"), &SLAM, SLAM.get_frame_publisher(), SLAM.get_map_publisher());
+#elif USE_SOCKET_PUBLISHER
+    socket_publisher::publisher publisher(
+        openvslam::util::yaml_optional_ref(cfg->yaml_node_, "SocketPublisher"), &SLAM, SLAM.get_frame_publisher(), SLAM.get_map_publisher());
+#endif
+
+    cv::Mat frame1, frame2, input1, input2;
+    double tframe;
+
+    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point t2 = t1;
+    typedef std::chrono::duration<double, std::ratio<1, 1000>> ms;
+
+    // run the SLAM in another thread
+    std::thread thread([&]() {
+        while (true) {
+            rs2::frameset data = pipeline.wait_for_frames();
+
+            rs2::frameset alignedFrame = alignTo.process(data);
+            rs2::depth_frame depth = alignedFrame.get_depth_frame();
+
+            frame1 = funcFormat::frame2Mat(alignedFrame.get_color_frame());
+            frame2 = funcFormat::frame2Mat(depth);
+
+            input1 = frame1.clone();
+            input2 = frame2.clone();
+
+            t1 = std::chrono::steady_clock::now();
+            tframe = std::chrono::duration_cast<ms>(t1 - t2).count();
+
+            SLAM.feed_RGBD_frame(input1, input2, tframe);
+
+            t2 = t1;
+
+            if (SLAM.terminate_is_requested())
+                break;
+        }
+
+        // wait until the loop BA is finished
+        while (SLAM.loop_BA_is_running()) {
+            std::this_thread::sleep_for(std::chrono::microseconds(5000));
+        }
+    });
+
+    // run the viewer in the current thread
+#ifdef USE_PANGOLIN_VIEWER
+    viewer.run();
+#elif USE_SOCKET_PUBLISHER
+    publisher.run();
+#endif
+
+    thread.join();
+
+    // shutdown the SLAM process
+    SLAM.shutdown();
+
+    save_traj(save_dir, localization_mode, SLAM);
+}
+
+void mono_tracking(const std::shared_ptr<openvslam::config>& cfg,
+                   const std::string& vocab_file_path,
+                   const std::string& save_dir,
+                   const bool localization_mode) {
+    // initialize a SLAM system
+    openvslam::system SLAM(cfg, vocab_file_path);
+    std::cerr << "here" << std::endl;
+
+    if (localization_mode) {
+        // startup the SLAM process (don't need to initialize a map since we're only localizing)
+        SLAM.startup(false);
+        SLAM.disable_mapping_module();
+        SLAM.disable_loop_detector();
+        SLAM.load_map_database(save_dir + "/latest/map.msg");
+    }
+    else {
+        // startup the SLAM process
+        SLAM.startup();
+    }
+
+    std::cerr << "here" << std::endl;
 
     // RealSense settings
     rs2::pipeline pipeline;
@@ -142,25 +216,39 @@ void mono_tracking(const std::shared_ptr<openvslam::config>& cfg,
 
     const openvslam::util::stereo_rectifier rectifier(cfg);
 
-    cv::Mat frame1, input1;
+    // create a viewer object
+    // and pass the frame_publisher and the map_publisher
+#ifdef USE_PANGOLIN_VIEWER
+    pangolin_viewer::viewer viewer(
+        openvslam::util::yaml_optional_ref(cfg->yaml_node_, "PangolinViewer"), &SLAM, SLAM.get_frame_publisher(), SLAM.get_map_publisher());
+#elif USE_SOCKET_PUBLISHER
+    socket_publisher::publisher publisher(
+        openvslam::util::yaml_optional_ref(cfg->yaml_node_, "SocketPublisher"), &SLAM, SLAM.get_frame_publisher(), SLAM.get_map_publisher());
+#endif
 
+    cv::Mat frame1, input1;
+    double tframe;
+
+    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point t2 = t1;
+    typedef std::chrono::duration<double, std::ratio<1, 1000>> ms;
+
+    // run the SLAM in another thread
     std::thread thread([&]() {
         while (true) {
-            if(!pause_slam)
-            {
-                rs2::frameset data = pipeline.wait_for_frames();
-                frame1 = funcFormat::frame2Mat(data.get_fisheye_frame(1));
+            rs2::frameset data = pipeline.wait_for_frames();
 
-                rectifier.rectify(frame1, input1);
-                
-                SLAM.feed_monocular_frame(input1, get_ts());
+            frame1 = funcFormat::frame2Mat(data.get_fisheye_frame(1));
 
-                update_curr_pos(map_publisher->get_current_cam_pose());
-            }
-            else
-            {
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            }
+            rectifier.rectify(frame1, input1);
+            
+            t1 = std::chrono::steady_clock::now();
+            tframe = std::chrono::duration_cast<ms>(t1 - t2).count();
+
+            // SLAM.feed_RGBD_frame(input1, input2, tframe);
+            SLAM.feed_monocular_frame(input1, tframe);
+
+            t2 = t1;
 
             if (SLAM.terminate_is_requested())
                 break;
@@ -170,29 +258,14 @@ void mono_tracking(const std::shared_ptr<openvslam::config>& cfg,
         while (SLAM.loop_BA_is_running()) {
             std::this_thread::sleep_for(std::chrono::microseconds(5000));
         }
-
     });
 
-    char c;
-    // while(true){
-        // std::cin >> c;
-        // std::cout << c;
-        // if(c == 'p') pause_slam = !pause_slam;
-        // else if(c == 's') break;
-        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    // }
-
-    std::this_thread::sleep_for(std::chrono::seconds(20));
-
-        // run the viewer in the current thread
-// #ifdef USE_PANGOLIN_VIEWER
-//     viewer.run();
-// #elif USE_SOCKET_PUBLISHER
-//     publisher.run();
-// #endif
-
-
-    SLAM.request_terminate();
+    // run the viewer in the current thread
+#ifdef USE_PANGOLIN_VIEWER
+    viewer.run();
+#elif USE_SOCKET_PUBLISHER
+    publisher.run();
+#endif
 
     thread.join();
 
@@ -359,7 +432,10 @@ int main(int argc, char* argv[]) {
 #endif
 
     // run tracking
-    if(cfg->camera_->setup_type_ == openvslam::camera::setup_type_t::Stereo)
+    if (cfg->camera_->setup_type_ == openvslam::camera::setup_type_t::RGBD) {
+        rgbd_tracking(cfg, vocab_file_path->value(), save_dir->value(), localization_mode->is_set());
+    }
+    else if(cfg->camera_->setup_type_ == openvslam::camera::setup_type_t::Stereo)
     {
         stereo_tracking(cfg, vocab_file_path->value(), save_dir->value(), localization_mode->is_set());
     }
