@@ -168,7 +168,7 @@ void mono_tracking(const std::shared_ptr<openvslam::config>& cfg,
 
     std::thread thread([&]() {
         while (true) {
-            if(!pause_slam)
+            if(!SLAM.tracker_is_paused())
             {
                 data = pipeline.wait_for_frames();
                 rs2::video_frame curr_frame = data.get_fisheye_frame(1);
