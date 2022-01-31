@@ -240,7 +240,7 @@ void mono_tracking(const std::shared_ptr<openvslam::config>& cfg,
 
             frame1 = funcFormat::frame2Mat(data.get_fisheye_frame(1));
 
-            rectifier.rectify(frame1, input1);
+            rectifier.undistort(frame1, input1);
             
             t1 = std::chrono::steady_clock::now();
             tframe = std::chrono::duration_cast<ms>(t1 - t2).count();

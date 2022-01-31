@@ -65,7 +65,7 @@ void stereo_rectifier::rectify(const cv::Mat& in_img_l, const cv::Mat& in_img_r,
     cv::remap(in_img_r, out_img_r, undist_map_x_r_, undist_map_y_r_, cv::INTER_LINEAR);
 }
 
-void stereo_rectifier::rectify(const cv::Mat& in_img_l, cv::Mat& out_img_l) const {
+void stereo_rectifier::undistort(const cv::Mat& in_img_l, cv::Mat& out_img_l) const {
     cv::remap(in_img_l, out_img_l, undist_map_x_l_, undist_map_y_l_, cv::INTER_LINEAR);
 }
 

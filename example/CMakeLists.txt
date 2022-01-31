@@ -68,7 +68,7 @@ set(EXECUTABLE_TARGETS "")
 # add_executable(run_tum_rgbd_localization run_tum_rgbd_localization.cc util/tum_rgbd_util.cc)
 # list(APPEND EXECUTABLE_TARGETS run_tum_rgbd_localization)
 
-add_executable(run_slambox run_slambox.cpp util/realsense_util.cpp)
+add_executable(run_slambox run_slambox.cpp util/realsense_util.cpp util/box_util.cpp)
 target_link_libraries(run_slambox PRIVATE ${realsense2_LIBRARY})
 list(APPEND EXECUTABLE_TARGETS run_slambox)
 
