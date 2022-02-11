@@ -5,7 +5,7 @@ sudo apt update -y
 sudo apt upgrade -y --no-install-recommends
 
 # basic dependencies
-sudo apt install -y build-essential pkg-config cmake git wget curl unzip python3-pip
+sudo apt install -y build-essential pkg-config cmake git wget curl unzip python3-pip zstd
 
 # python dependencies
 pip3 install msgpack
@@ -117,9 +117,26 @@ cmake \
 make -j4
 sudo make install
 
+#Download and install curlpp
+cd
+curl -sL "https://github.com/jpbarrette/curlpp/archive/refs/tags/v0.8.1.zip" -o "curlpp-0.8.1.zip"
+unzip curlpp-0.8.1.zip
+cd curlpp-0.8.1
+mkdir build && cd build
+cmake ..
+make -j4
+sudo make install
+
 # Build openvslam
 cd
 cd openvslam
 mkdir build && cd build
-cmake -DUSE_PANGOLIN_VIEWER=ON -DINSTALL_PANGOLIN_VIEWER=ON -DUSE_SOCKET_PUBLISHER=OFF -DUSE_STACK_TRACE_LOGGER=ON -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=ON -DCMAKE_CXX_COMPILER=/usr/bin/g++-11 -DCMAKE_CC_COMPILER=/usr/bin/gcc-11 ..
+cmake -DBUILD_SHARED_LIBS=ON -DUSE_PANGOLIN_VIEWER=OFF -DINSTALL_PANGOLIN_VIEWER=OFF -DUSE_SOCKET_PUBLISHER=OFF -DUSE_STACK_TRACE_LOGGER=ON -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF -DCMAKE_CXX_COMPILER=/usr/bin/g++-11 -DCMAKE_CC_COMPILER=/usr/bin/gcc-11 ..
 make -j6
+sudo make install
+
+# Download ORB vocabulary
+cd
+cd openvslam
+mkdir vocab
+curl -sL "https://github.com/OpenVSLAM-Community/FBoW_orb_vocab/raw/main/orb_vocab.fbow" -o vocab/orb_vocab.fbow

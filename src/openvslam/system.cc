@@ -133,6 +133,10 @@ void system::startup(const bool need_initialize) {
 
     mapping_thread_ = std::unique_ptr<std::thread>(new std::thread(&openvslam::mapping_module::run, mapper_));
     global_optimization_thread_ = std::unique_ptr<std::thread>(new std::thread(&openvslam::global_optimization_module::run, global_optimizer_));
+
+    //name threads
+    pthread_setname_np(mapping_thread_->native_handle(),"mapping_thread");
+    pthread_setname_np(global_optimization_thread_->native_handle(),"global_optimization_thread");
 }
 
 void system::shutdown() {

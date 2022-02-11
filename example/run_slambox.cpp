@@ -42,51 +42,55 @@ void start_tracker(const std::shared_ptr<openvslam::config>& cfg,
     // initialize a SLAM system
     std::shared_ptr<openvslam::system> SLAM = std::make_shared<openvslam::system>(cfg, vocabFilePath);
     std::shared_ptr<box::PoseLogger> poseLogger = std::make_shared<box::PoseLogger>(SLAM);
-    std::shared_ptr<box::FrameFeeder> frameFeeder = std::make_shared<box::FrameFeeder>(SLAM, cfg, poseLogger, saveDir, localizationMode);
+    std::unique_ptr<box::FrameFeeder> frameFeeder = std::make_unique<box::FrameFeeder>(SLAM, cfg, poseLogger, saveDir, localizationMode);
 
-#ifdef USE_PANGOLIN_VIEWER
-    pangolin_viewer::viewer viewer(
-        openvslam::util::yaml_optional_ref(cfg->yaml_node_, "PangolinViewer"), SLAM.get(), SLAM->get_frame_publisher(), SLAM->get_map_publisher());
-#elif USE_SOCKET_PUBLISHER
-    socket_publisher::publisher publisher(
-        openvslam::util::yaml_optional_ref(cfg->yaml_node_, "SocketPublisher"), &SLAM, SLAM.get_frame_publisher(), SLAM.get_map_publisher());
-#endif
+    poseLogger->startNewLog(saveDir);
+
+// #ifdef USE_PANGOLIN_VIEWER
+//     pangolin_viewer::viewer viewer(
+//         openvslam::util::yaml_optional_ref(cfg->yaml_node_, "PangolinViewer"), SLAM.get(), SLAM->get_frame_publisher(), SLAM->get_map_publisher());
+// #elif USE_SOCKET_PUBLISHER
+//     socket_publisher::publisher publisher(
+//         openvslam::util::yaml_optional_ref(cfg->yaml_node_, "SocketPublisher"), SLAM.get(), SLAM->get_frame_publisher(), SLAM->get_map_publisher());
+// #endif
 
     std::thread slamThread([&]() {
         frameFeeder->run();
     });
 
-    //can't remove this otherwise CPU usage jumps to 100% for no explicable reason
-    std::thread uselessViewerThread([&]() {
-#ifdef USE_PANGOLIN_VIEWER
-        viewer.run();
-#elif USE_SOCKET_PUBLISHER
-        publisher.run();
-#endif
-    });
+//     //can't remove this otherwise CPU usage jumps to 100% for no explicable reason
+//     std::thread uselessViewerThread([&]() {
+// #ifdef USE_PANGOLIN_VIEWER
+//         viewer.run();
+// #elif USE_SOCKET_PUBLISHER
+//         publisher.run();
+// #endif
+//     });
 
     //Run server communication is this thread
-    while(true)
-    {
-
-    }
-
-    // std::cin.get();
+    std::thread serverClientThread([&]() {
+        box::StatusSender serverClient{poseLogger};
+        serverClient.run();
+    });
+    
+    box::TelemetrySender serverListener{poseLogger};
+    serverListener.run();
 
     SLAM->request_terminate();
-#ifdef USE_PANGOLIN_VIEWER
-    viewer.request_termenate();
-#elif USE_SOCKET_PUBLISHER
-    publisher.request_termenate();
-#endif
+// #ifdef USE_PANGOLIN_VIEWER
+//     viewer.request_terminate();
+// #elif USE_SOCKET_PUBLISHER
+//     publisher.request_terminate();
+// #endif
 
     slamThread.join();
-    uselessViewerThread.join();
+    serverClientThread.join();
+    // uselessViewerThread.join();
 
     // shutdown the SLAM process
     SLAM->shutdown();
 
-    poseLogger->saveTraj(saveDir, localizationMode);
+    // poseLogger->saveTraj(saveDir, localizationMode);
 }
 
 

@@ -31,6 +31,37 @@ else()
     message(STATUS "Viewer for examples: None")
 endif()
 
+# ------ CURLPP stuff --------
+message(STATUS "Looking for curl...")
+find_package(CURL REQUIRED)
+
+if (CURL_FOUND)
+    message(STATUS "Found curl version: ${CURL_VERSION_STRING}")
+    message(STATUS "Using curl version: ${CURL_INCLUDE_DIRS}")
+    message(STATUS "Using curl libraries: ${CURL_LIBRARIES}\n")
+    list(APPEND Project_INCLUDE_DIRS ${CURL_INCLUDE_DIRS})
+else()
+    message(FATAL_ERROR "Could not find curl.")
+endif()
+
+
+message(STATUS "Looking for curlpp...")
+find_package(CURLPP REQUIRED)
+
+if (CURLPP_FOUND)
+    message(STATUS "Found curlpp version: ${CURLPP_VERSION}")
+    message(STATUS "Using curlpp include dir: ${CURLPP_INCLUDE_DIR}")
+    message(STATUS "Using curlpp libraries: ${CURLPP_LIBRARY}\n")
+    list(APPEND Project_INCLUDE_DIRS ${CURLPP_INCLUDE_DIR})
+else()
+    message(FATAL_ERROR "Could not find curlpp.")
+endif()
+
+# set(Poco_DIR "/usr/local/lib/cmake/Poco/")
+# find_package(Poco REQUIRED)
+# list(APPEND Project_INCLUDE_DIRS ${Poco_INCLUDE_DIR})
+
+
 # ----- Build example executables -----
 
 set(EXECUTABLE_TARGETS "")
@@ -68,8 +99,23 @@ set(EXECUTABLE_TARGETS "")
 # add_executable(run_tum_rgbd_localization run_tum_rgbd_localization.cc util/tum_rgbd_util.cc)
 # list(APPEND EXECUTABLE_TARGETS run_tum_rgbd_localization)
 
-add_executable(run_slambox run_slambox.cpp util/realsense_util.cpp util/box_util.cpp)
-target_link_libraries(run_slambox PRIVATE ${realsense2_LIBRARY})
+find_package(PkgConfig QUIET)
+if(PKGCONFIG_FOUND)
+    pkg_check_modules(ZSTD libzstd)
+endif()
+if(NOT ZSTD_FOUND)
+    find_package(ZSTD REQUIRED)
+    if(ZSTD_FOUND)
+        if(TARGET zstd::libzstd_static)
+            list(APPEND ZSTD_LIBRARIES zstd::libzstd_static)
+        else()
+            list(APPEND ZSTD_LIBRARIES zstd::libzstd_shared)
+        endif()
+    endif()
+endif()
+
+add_executable(run_slambox run_slambox.cpp util/realsense_util.cpp util/box_util.cpp util/udp_client_server.cpp)
+target_link_libraries(run_slambox PRIVATE ${realsense2_LIBRARY} ${CURL_LIBRARIES} ${CURLPP_LIBRARY} ${ZSTD_LIBRARIES})
 list(APPEND EXECUTABLE_TARGETS run_slambox)
 
 # add_executable(run_realsense_t265 run_realsense_t265.cpp util/realsense_util.cpp)
