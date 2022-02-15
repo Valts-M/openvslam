@@ -58,7 +58,7 @@ public:
     //! Constructor
     base(const std::string& name, const setup_type_t setup_type, const model_type_t model_type, const color_order_t color_order,
          const unsigned int cols, const unsigned int rows, const double fps,
-         const double focal_x_baseline, const double true_baseline,
+         const double focal_x_baseline, const double true_baseline, const double depth_thr,
          const unsigned int num_grid_cols = 64, const unsigned int num_grid_rows = 48);
 
     //! Destructor
@@ -114,6 +114,10 @@ public:
     //! true baseline length in metric scale
     const double true_baseline_;
 
+    //! depth threshold in metric scale (Ignore depths farther than depth_thr_ times the baseline.
+    //! if a stereo-triangulated point is farther than this threshold, it is invalid)
+    const double depth_thr_;
+
     //! number of columns of grid to accelerate reprojection matching
     const unsigned int num_grid_cols_;
     //! number of rows of grid to accelerate reprojection matching
@@ -139,23 +143,14 @@ public:
     //! Compute image boundaries according to camera model
     virtual image_bounds compute_image_bounds() const = 0;
 
-    //! Undistort keypoint according to camera model
-    virtual cv::KeyPoint undistort_keypoint(const cv::KeyPoint& dist_keypt) const = 0;
+    //! Undistort point according to camera model
+    virtual cv::Point2f undistort_point(const cv::Point2f& dist_pt) const = 0;
 
-    //! Undistort keypoints according to camera model
-    virtual void undistort_keypoints(const std::vector<cv::KeyPoint>& dist_keypts, std::vector<cv::KeyPoint>& undist_keypts) const = 0;
+    //! Convert undistorted point to bearing vector
+    virtual Vec3_t convert_point_to_bearing(const cv::Point2f& undist_pt) const = 0;
 
-    //! Convert undistorted keypoint to bearing vector
-    virtual Vec3_t convert_keypoint_to_bearing(const cv::KeyPoint& undist_keypt) const = 0;
-
-    //! Convert undistorted keypoints to bearing vectors
-    virtual void convert_keypoints_to_bearings(const std::vector<cv::KeyPoint>& undist_keypts, eigen_alloc_vector<Vec3_t>& bearings) const = 0;
-
-    //! Convert bearing vector to undistorted keypoint
-    virtual cv::KeyPoint convert_bearing_to_keypoint(const Vec3_t& bearing) const = 0;
-
-    //! Convert bearing vectors to undistorted keypoints
-    virtual void convert_bearings_to_keypoints(const eigen_alloc_vector<Vec3_t>& bearings, std::vector<cv::KeyPoint>& undist_keypts) const = 0;
+    //! Convert bearing vector to undistorted point
+    virtual cv::Point2f convert_bearing_to_point(const Vec3_t& bearing) const = 0;
 
     //! Reproject the specified 3D point to image using camera pose and projection model
     //! (reprojected to inside of image -> true, to outside of image -> false)
@@ -167,6 +162,27 @@ public:
 
     //! Encode camera information as JSON
     virtual nlohmann::json to_json() const = 0;
+
+    //-------------------------
+    // Utility for vector
+
+    //! Undistort keypoint according to camera model
+    virtual cv::KeyPoint undistort_keypoint(const cv::KeyPoint& dist_keypt) const;
+
+    //! Undistort points according to camera model
+    virtual void undistort_points(const std::vector<cv::Point2f>& dist_pts, std::vector<cv::Point2f>& undist_pts) const;
+
+    //! Undistort keypoints according to camera model
+    virtual void undistort_keypoints(const std::vector<cv::KeyPoint>& dist_keypts, std::vector<cv::KeyPoint>& undist_keypts) const;
+
+    //! Convert undistorted points to bearing vectors
+    virtual void convert_points_to_bearings(const std::vector<cv::Point2f>& undist_pts, eigen_alloc_vector<Vec3_t>& bearings) const;
+
+    //! Convert undistorted keypoints to bearing vectors
+    virtual void convert_keypoints_to_bearings(const std::vector<cv::KeyPoint>& undist_keypts, eigen_alloc_vector<Vec3_t>& bearings) const;
+
+    //! Convert bearing vectors to undistorted points
+    virtual void convert_bearings_to_points(const eigen_alloc_vector<Vec3_t>& bearings, std::vector<cv::Point2f>& undist_pts) const;
 };
 
 std::ostream& operator<<(std::ostream& os, const base& params);

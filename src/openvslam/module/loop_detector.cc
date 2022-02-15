@@ -38,11 +38,16 @@ void loop_detector::set_current_keyframe(const std::shared_ptr<data::keyframe>& 
 }
 
 bool loop_detector::detect_loop_candidates() {
+    auto succeeded = detect_loop_candidates_impl();
+    // register to the BoW database
+    bow_db_->add_keyframe(cur_keyfrm_);
+    return succeeded;
+}
+
+bool loop_detector::detect_loop_candidates_impl() {
     // if the loop detector is disabled or the loop has been corrected recently,
     // cannot perfrom the loop correction
     if (!loop_detector_is_enabled_ || cur_keyfrm_->id_ < prev_loop_correct_keyfrm_id_ + 10) {
-        // register to the BoW database
-        bow_db_->add_keyframe(cur_keyfrm_);
         return false;
     }
 
@@ -61,8 +66,6 @@ bool loop_detector::detect_loop_candidates() {
     if (init_loop_candidates.empty()) {
         // clear the buffer because any candidates are not found
         cont_detected_keyfrm_sets_.clear();
-        // register to the BoW database
-        bow_db_->add_keyframe(cur_keyfrm_);
         return false;
     }
 
@@ -91,19 +94,36 @@ bool loop_detector::detect_loop_candidates() {
 
     cont_detected_keyfrm_sets_ = curr_cont_detected_keyfrm_sets;
 
-    // register to the BoW database
-    bow_db_->add_keyframe(cur_keyfrm_);
-
     // return any candidate is found or not
     return !loop_candidates_to_validate_.empty();
 }
 
 bool loop_detector::validate_candidates() {
     // disallow the removal of the candidates
-    for (const auto candidate : loop_candidates_to_validate_) {
+    for (const auto& candidate : loop_candidates_to_validate_) {
         candidate->set_not_to_be_erased();
     }
 
+    auto succeeded = validate_candidates_impl();
+    if (succeeded) {
+        // allow the removal of the candidates except for the selected one
+        for (const auto& loop_candidate : loop_candidates_to_validate_) {
+            if (*loop_candidate == *selected_candidate_) {
+                continue;
+            }
+            loop_candidate->set_to_be_erased();
+        }
+    }
+    else {
+        // allow the removal of all of the candidates
+        for (const auto& loop_candidate : loop_candidates_to_validate_) {
+            loop_candidate->set_to_be_erased();
+        }
+    }
+    return succeeded;
+}
+
+bool loop_detector::validate_candidates_impl() {
     // 1. for each of the candidates, estimate and validate the Sim3 between it and the current keyframe using the observed landmarks
     //    then, select ONE candaite
 
@@ -112,9 +132,6 @@ bool loop_detector::validate_candidates() {
     Sim3_world_to_curr_ = util::converter::to_eigen_mat(g2o_Sim3_world_to_curr_);
 
     if (!candidate_is_found) {
-        for (const auto loop_candidate : loop_candidates_to_validate_) {
-            loop_candidate->set_to_be_erased();
-        }
         return false;
     }
 
@@ -132,7 +149,7 @@ bool loop_detector::validate_candidates() {
     // acquire all of the landmarks observed in the covisibilities of the candidate
     // check the already inserted landmarks
     std::unordered_set<std::shared_ptr<data::landmark>> already_inserted;
-    for (const auto covisibility : cand_covisibilities) {
+    for (const auto& covisibility : cand_covisibilities) {
         const auto lms_in_covisibility = covisibility->get_landmarks();
         for (const auto& lm : lms_in_covisibility) {
             if (!lm) {
@@ -160,7 +177,7 @@ bool loop_detector::validate_candidates() {
 
     // count up the matches
     unsigned int num_final_matches = 0;
-    for (const auto curr_assoc_lm_in_cand : curr_match_lms_observed_in_cand_) {
+    for (const auto& curr_assoc_lm_in_cand : curr_match_lms_observed_in_cand_) {
         if (curr_assoc_lm_in_cand) {
             ++num_final_matches;
         }
@@ -169,21 +186,10 @@ bool loop_detector::validate_candidates() {
     spdlog::debug("acquired {} matches after projection-match", num_final_matches);
 
     if (num_final_matches_thr_ <= num_final_matches) {
-        // allow the removal of the candidates except for the selected one
-        for (const auto loop_candidate : loop_candidates_to_validate_) {
-            if (*loop_candidate == *selected_candidate_) {
-                continue;
-            }
-            loop_candidate->set_to_be_erased();
-        }
         return true;
     }
     else {
         spdlog::debug("destruct loop candidate because enough matches not acquired (< {})", num_final_matches_thr_);
-        // allow the removal of all of the candidates
-        for (const auto loop_candidate : loop_candidates_to_validate_) {
-            loop_candidate->set_to_be_erased();
-        }
         return false;
     }
 }
@@ -195,7 +201,7 @@ float loop_detector::compute_min_score_in_covisibilities(const std::shared_ptr<d
     // search the mininum score among covisibilities
     const auto covisibilities = keyfrm->graph_node_->get_covisibilities();
     const auto& bow_vec_1 = keyfrm->bow_vec_;
-    for (const auto covisibility : covisibilities) {
+    for (const auto& covisibility : covisibilities) {
         if (covisibility->will_be_erased()) {
             continue;
         }
