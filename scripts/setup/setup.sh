@@ -62,15 +62,15 @@ make -j6
 sudo make install
 
 # Download and install OpenCV
-#cd
-#wget -q https://github.com/opencv/opencv/archive/3.4.0.zip
-#unzip -q 3.4.0.zip
-#rm -rf 3.4.0.zip
-#cd opencv-3.4.0
-#mkdir -p build && cd build
-#cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DENABLE_CXX11=ON -DBUILD_DOCS=OFF -DBUILD_EXAMPLES=OFF -DBUILD_JASPER=OFF -DBUILD_OPENEXR=OFF -DBUILD_PERF_TESTS=OFF -DBUILD_TESTS=OFF -DWITH_EIGEN=ON -DWITH_FFMPEG=ON -DWITH_OPENMP=ON ..
-#make -j4
-#sudo make install
+cd
+wget -q https://github.com/opencv/opencv/archive/3.4.0.zip
+unzip -q 3.4.0.zip
+rm -rf 3.4.0.zip
+cd opencv-3.4.0
+mkdir -p build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DENABLE_CXX11=ON -DBUILD_DOCS=OFF -DBUILD_EXAMPLES=OFF -DBUILD_JASPER=OFF -DBUILD_OPENEXR=OFF -DBUILD_PERF_TESTS=OFF -DBUILD_TESTS=OFF -DWITH_EIGEN=ON -DWITH_FFMPEG=ON -DWITH_OPENMP=ON ..
+make -j4
+sudo make install
 
 # Download and install FBoW
 cd
@@ -131,7 +131,7 @@ sudo make install
 cd
 cd openvslam
 mkdir build && cd build
-cmake -DBUILD_SHARED_LIBS=ON -DUSE_PANGOLIN_VIEWER=OFF -DINSTALL_PANGOLIN_VIEWER=OFF -DUSE_SOCKET_PUBLISHER=OFF -DUSE_STACK_TRACE_LOGGER=ON -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF -DCMAKE_CXX_COMPILER=/usr/bin/g++-11 -DCMAKE_CC_COMPILER=/usr/bin/gcc-11 ..
+cmake -DBUILD_SHARED_LIBS=ON -DUSE_PANGOLIN_VIEWER=OFF -DINSTALL_PANGOLIN_VIEWER=OFF -DUSE_SOCKET_PUBLISHER=ON -DINSTALL_SOCKET_PUBLISHER=ON -DUSE_STACK_TRACE_LOGGER=OFF -DBUILD_TESTS=OFF -DBUILD_EXAMPLES=OFF -DCMAKE_CXX_COMPILER=/usr/bin/g++-11 -DCMAKE_CC_COMPILER=/usr/bin/gcc-11 ..
 make -j6
 sudo make install
 
