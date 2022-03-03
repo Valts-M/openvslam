@@ -5,7 +5,7 @@ sudo apt update -y
 sudo apt upgrade -y --no-install-recommends
 
 # basic dependencies
-sudo apt install -y build-essential pkg-config cmake git wget curl unzip python3-pip zstd
+sudo apt install -y build-essential pkg-config cmake git wget curl unzip python3-pip zstd libcurl4-gnutls-dev libzstd-dev
 
 # python dependencies
 pip3 install msgpack
@@ -63,10 +63,10 @@ sudo make install
 
 # Download and install OpenCV
 cd
-wget -q https://github.com/opencv/opencv/archive/3.4.0.zip
-unzip -q 3.4.0.zip
-rm -rf 3.4.0.zip
-cd opencv-3.4.0
+wget -q https://github.com/opencv/opencv/archive/4.5.5.zip
+unzip -q 4.5.5.zip
+rm -rf 4.5.5.zip
+cd opencv-4.5.5
 mkdir -p build && cd build
 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DENABLE_CXX11=ON -DBUILD_DOCS=OFF -DBUILD_EXAMPLES=OFF -DBUILD_JASPER=OFF -DBUILD_OPENEXR=OFF -DBUILD_PERF_TESTS=OFF -DBUILD_TESTS=OFF -DWITH_EIGEN=ON -DWITH_FFMPEG=ON -DWITH_OPENMP=ON ..
 make -j4
@@ -121,6 +121,7 @@ sudo make install
 cd
 curl -sL "https://github.com/jpbarrette/curlpp/archive/refs/tags/v0.8.1.zip" -o "curlpp-0.8.1.zip"
 unzip curlpp-0.8.1.zip
+rm -rf curlpp-0.8.1.zip
 cd curlpp-0.8.1
 mkdir build && cd build
 cmake ..
