@@ -5,18 +5,17 @@
 Camera:
   name: "Realsense T265"
   setup: "monocular"
-  model: "perspective"
+  model: "fisheye"
 
   fx: 285.069213867188
   fy: 286.148406982422
   cx: 419.819091796875
   cy: 398.533599853516
 
-  k1: 0.0
-  k2: 0.0
-  p1: 0.0
-  p2: 0.0
-  k3: 0.0
+  k1: -0.000995491282083094
+  k2: 0.0358942113816738
+  k3: -0.0343085005879402
+  k4: 0.00534299295395613
 
   fps: 30.0
   cols: 848
@@ -45,9 +44,9 @@ StereoRectifier:
 # Tracking Parameters #
 #=====================#
 
-Tracking:
-  max_num_keypoints: 1000
-  ini_max_num_keypoints: 2000
+Preprocessing:
+  max_num_keypoints: 1500
+  ini_max_num_keypoints: 3000
   depth_threshold: 40.0
   depthmap_factor: 1000.0
 
@@ -56,6 +55,7 @@ Tracking:
 #================#
 
 Feature:
+  name: "default ORB feature extraction setting"
   scale_factor: 1.2
   num_levels: 8
   ini_fast_threshold: 20

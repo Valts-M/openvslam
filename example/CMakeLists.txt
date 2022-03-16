@@ -41,8 +41,8 @@ set(EXECUTABLE_TARGETS "")
 # add_executable(run_camera_localization run_camera_localization.cc)
 # list(APPEND EXECUTABLE_TARGETS run_camera_localization)
 
-# add_executable(run_image_slam run_image_slam.cc util/image_util.cc)
-# list(APPEND EXECUTABLE_TARGETS run_image_slam)
+add_executable(run_image_slam run_image_slam.cc util/image_util.cc)
+list(APPEND EXECUTABLE_TARGETS run_image_slam)
 
 # add_executable(run_image_localization run_image_localization.cc util/image_util.cc)
 # list(APPEND EXECUTABLE_TARGETS run_image_localization)
@@ -68,13 +68,13 @@ set(EXECUTABLE_TARGETS "")
 # add_executable(run_tum_rgbd_localization run_tum_rgbd_localization.cc util/tum_rgbd_util.cc)
 # list(APPEND EXECUTABLE_TARGETS run_tum_rgbd_localization)
 
-add_executable(run_slambox run_slambox.cpp util/realsense_util.cpp util/box_util.cpp)
+# add_executable(run_slambox run_slambox.cpp util/realsense_util.cpp util/box_util.cpp)
+# target_link_libraries(run_slambox PRIVATE ${realsense2_LIBRARY})
+# list(APPEND EXECUTABLE_TARGETS run_slambox)
+
+add_executable(run_slambox run_slambox_viewer.cpp util/realsense_util.cpp)
 target_link_libraries(run_slambox PRIVATE ${realsense2_LIBRARY})
 list(APPEND EXECUTABLE_TARGETS run_slambox)
-
-# add_executable(run_realsense_t265 run_realsense_t265.cpp util/realsense_util.cpp)
-# target_link_libraries(run_realsense_t265 PRIVATE ${realsense2_LIBRARY})
-# list(APPEND EXECUTABLE_TARGETS run_realsense_t265)
 
 # add_executable(run_realsense_slam run_realsense_slam.cpp util/realsense_util.cpp)
 # target_link_libraries(run_realsense_slam PRIVATE ${realsense2_LIBRARY})

@@ -518,6 +518,9 @@ bool tracking_module::optimize_current_frame_with_local_map() {
         if (!lm) {
             continue;
         }
+        if (lm->will_be_erased()) {
+            continue;
+        }
 
         if (!curr_frm_.outlier_flags_.at(idx)) {
             // the observation has been considered as inlier in the pose optimization

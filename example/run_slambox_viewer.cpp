@@ -84,11 +84,11 @@ void save_traj(const std::string& save_dir, const bool localization_mode, const 
         fs::create_symlink(fullSavePath, latestSymlink);
         // output the trajectories for evaluation
         SLAM.save_frame_trajectory(latestSymlink.string() + "/trajectory.txt", "KITTI");
-#ifdef USE_PANGOLIN_VIEWER
-        viewer.create_report_config_file(mapSavePath.string(), fullSavePath.string());
-#elif USE_SOCKET_PUBLISHER
-        publisher.create_report_config_file(mapSavePath.string(), fullSavePath.string());
-#endif
+// #ifdef USE_PANGOLIN_VIEWER
+//         viewer.create_report_config_file(mapSavePath.string(), fullSavePath.string());
+// #elif USE_SOCKET_PUBLISHER
+//         publisher.create_report_config_file(mapSavePath.string(), fullSavePath.string());
+// #endif
     }
 }
 

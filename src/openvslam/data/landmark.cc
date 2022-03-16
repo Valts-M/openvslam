@@ -73,13 +73,11 @@ void landmark::erase_observation(const std::shared_ptr<keyframe>& keyfrm) {
 
             observations_.erase(keyfrm);
 
-            if (ref_keyfrm_.lock() == keyfrm) {
-                ref_keyfrm_ = observations_.begin()->first;
-            }
-
-            // If only 2 observations or less, discard point
-            if (num_observations_ <= 2) {
+            if (observations_.empty()) {
                 discard = true;
+            }
+            else if (ref_keyfrm_.lock() == keyfrm) {
+                ref_keyfrm_ = observations_.begin()->first.lock();
             }
         }
     }

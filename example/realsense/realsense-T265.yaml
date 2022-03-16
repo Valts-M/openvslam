@@ -46,7 +46,7 @@ StereoRectifier:
 #=====================#
 
 Tracking:
-  max_num_keypoints: 1000
+  max_num_keypoints: 1500
   ini_max_num_keypoints: 2000
   depth_threshold: 40.0
   depthmap_factor: 1000.0
