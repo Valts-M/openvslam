@@ -34,7 +34,7 @@ public:
      * @param frame_publisher
      * @param map_publisher
      */
-    viewer(const YAML::Node& yaml_node, openvslam::system* system,
+    viewer(const YAML::Node& yaml_node, std::shared_ptr<openvslam::system> system,
            const std::shared_ptr<openvslam::publish::frame_publisher>& frame_publisher,
            const std::shared_ptr<openvslam::publish::map_publisher>& map_publisher);
 
@@ -135,8 +135,8 @@ private:
      */
     void check_state_transition();
 
-    //! system
-    openvslam::system* system_;
+    //! system  
+    std::shared_ptr<openvslam::system> system_;
     //! frame publisher
     const std::shared_ptr<openvslam::publish::frame_publisher> frame_publisher_;
     //! map publisher
@@ -167,10 +167,12 @@ private:
     std::unique_ptr<pangolin::Var<bool>> menu_pause_;
     std::unique_ptr<pangolin::Var<bool>> menu_reset_;
     std::unique_ptr<pangolin::Var<bool>> menu_terminate_;
+    std::unique_ptr<pangolin::Var<bool>> menu_save_map_;
     std::unique_ptr<pangolin::Var<float>> menu_frm_size_;
     std::unique_ptr<pangolin::Var<float>> menu_lm_size_;
     std::unique_ptr<pangolin::Var<float>> menu_dist_to_ground_;
     std::unique_ptr<pangolin::Var<float>> menu_brush_width_;
+    
 
     // camera renderer
     std::unique_ptr<pangolin::OpenGlRenderState> s_cam_;

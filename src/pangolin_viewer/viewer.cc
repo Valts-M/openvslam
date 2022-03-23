@@ -13,7 +13,7 @@
 
 namespace pangolin_viewer {
 
-viewer::viewer(const YAML::Node& yaml_node, openvslam::system* system,
+viewer::viewer(const YAML::Node& yaml_node, std::shared_ptr<openvslam::system> system,
                const std::shared_ptr<openvslam::publish::frame_publisher>& frame_publisher,
                const std::shared_ptr<openvslam::publish::map_publisher>& map_publisher)
     : system_(system), frame_publisher_(frame_publisher), map_publisher_(map_publisher),
@@ -28,7 +28,7 @@ viewer::viewer(const YAML::Node& yaml_node, openvslam::system* system,
       point_size_(yaml_node["point_size"].as<unsigned int>(2)),
       camera_size_(yaml_node["camera_size"].as<float>(0.15)),
       camera_line_width_(yaml_node["camera_line_width"].as<unsigned int>(2)),
-      cs_(yaml_node["color_scheme"].as<std::string>("white")),
+      cs_(yaml_node["color_scheme"].as<std::string>("black")),
       mapping_mode_(system->mapping_module_is_enabled()),
       loop_detection_mode_(system->loop_detector_is_enabled()) {}
 
@@ -108,6 +108,12 @@ void viewer::run() {
             request_terminate();
         }
 
+        if(*menu_save_map_)
+        {
+            system_->save_map_database("/tmp/map" + std::to_string(rand() % 100000) + ".msg");
+            *menu_save_map_ = false;
+        }
+
         if (terminate_is_requested()) {
             break;
         }
@@ -139,6 +145,8 @@ void viewer::create_menu_panel() {
     menu_lm_size_ = std::unique_ptr<pangolin::Var<float>>(new pangolin::Var<float>("menu.Landmark Size", 1.0, 1e-1, 1e1, true));
     menu_dist_to_ground_ = std::unique_ptr<pangolin::Var<float>>(new pangolin::Var<float>("menu.Dist to ground", 0.3, 0.0, 2.0, false));
     menu_brush_width_ = std::unique_ptr<pangolin::Var<float>>(new pangolin::Var<float>("menu.Brush width", 0.6, 0.0, 2.0, false));
+    menu_save_map_ = std::unique_ptr<pangolin::Var<bool>>(new pangolin::Var<bool>("menu.Save map", false, false));
+
 }
 
 void viewer::follow_camera(const pangolin::OpenGlMatrix& gl_cam_pose_wc) {
