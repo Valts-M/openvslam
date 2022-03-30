@@ -127,7 +127,14 @@ frame::frame(const cv::Mat& img_gray, const cv::Mat& img_depth, const double tim
 
 void frame::set_cam_pose(const Mat44_t& cam_pose_cw) {
     cam_pose_cw_is_valid_ = true;
+
+#ifdef CONSTRAIN_2D
+    auto pose = cam_pose_cw;
+    pose(1, 3) = 0;
+    cam_pose_cw_ = pose;
+#else
     cam_pose_cw_ = cam_pose_cw;
+#endif
     update_pose_params();
 }
 

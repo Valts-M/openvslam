@@ -30,7 +30,8 @@ let property = {
     StartSignal: function () { },
     StopSignal: function () { },
     ResetSignal: function () { },
-    PauseSignal: function () { }
+    PauseSignal: function () { },
+    SaveMap: function () { }
 };
 
 let graphicStats; // visualize fps of graphic refresh
@@ -173,6 +174,7 @@ function initGui() {
     gui.add(property, 'StopSignal').domElement.children[0].innerHTML = "<button onclick='onClickTerminate()'>terminate</button>";
     gui.add(property, 'ResetSignal').domElement.children[0].innerHTML = "<button onclick='onClickReset()'>reset</button>";
     gui.add(property, 'PauseSignal').domElement.children[0].innerHTML = "<button onclick='onClickPause()'>pause</button>";
+    gui.add(property, 'SaveMap').domElement.children[0].innerHTML = "<button onclick='onClickSaveMap()'>save_map</button>";
 }
 
 function setCameraMode(val) {
@@ -239,6 +241,9 @@ function onClickPause(){
 }
 function onClickStart(){
     socket.emit("signal", "start");
+}
+function onClickSaveMap(){
+    socket.emit("signal", "save_map");
 }
 
 // function that converts array that have size of 16 to matrix that shape of 4x4
@@ -422,7 +427,7 @@ function onResize() {
 let thumbEnlarge = false; // if thumbnail is clicked, that is enlarged and this flag is set
 const THUMB_SCALING = 3; // thumbnail scaling magnification
 const THUMB_HEIGHT = 96; // normally thumbnail height (width is doubled height)
-const CANVAS_SIZE = [1024, 500]; // thumbnail image resolution
+const CANVAS_SIZE = [640, 480]; // thumbnail image resolution
 function initTumbnail() {
     let thumb = document.getElementById("thumb");
     thumb.style.width = THUMB_HEIGHT * 2 + 'px';
@@ -432,8 +437,8 @@ function initTumbnail() {
     thumb.setAttribute("width", CANVAS_SIZE[0]);
     thumb.setAttribute("height", CANVAS_SIZE[1]);
     thumb.addEventListener('click', onThumbClick);
-
 }
+
 function onThumbClick() {
 
     thumbEnlarge = !thumbEnlarge; // inverse flag

@@ -72,9 +72,9 @@ list(APPEND EXECUTABLE_TARGETS run_image_slam)
 # target_link_libraries(run_slambox PRIVATE ${realsense2_LIBRARY})
 # list(APPEND EXECUTABLE_TARGETS run_slambox)
 
-add_executable(run_slambox run_slambox_viewer.cpp util/realsense_util.cpp)
-target_link_libraries(run_slambox PRIVATE ${realsense2_LIBRARY})
-list(APPEND EXECUTABLE_TARGETS run_slambox)
+# add_executable(run_slambox run_slambox_viewer.cpp util/realsense_util.cpp)
+# target_link_libraries(run_slambox PRIVATE ${realsense2_LIBRARY})
+# list(APPEND EXECUTABLE_TARGETS run_slambox)
 
 # add_executable(run_realsense_slam run_realsense_slam.cpp util/realsense_util.cpp)
 # target_link_libraries(run_realsense_slam PRIVATE ${realsense2_LIBRARY})

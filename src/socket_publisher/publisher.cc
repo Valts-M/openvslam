@@ -9,7 +9,7 @@
 
 namespace socket_publisher {
 
-publisher::publisher(const YAML::Node& yaml_node, openvslam::system* system,
+publisher::publisher(const YAML::Node& yaml_node, const std::shared_ptr<openvslam::system>& system,
                      const std::shared_ptr<openvslam::publish::frame_publisher>& frame_publisher,
                      const std::shared_ptr<openvslam::publish::map_publisher>& map_publisher)
     : system_(system),
@@ -41,6 +41,11 @@ void publisher::run() {
         const auto serialized_frame_data = data_serializer_->serialize_latest_frame(image_quality_);
         if (!serialized_frame_data.empty()) {
             client_->emit("frame_publish", serialized_frame_data);
+        }
+
+        const auto serialized_ram_data = data_serializer_->serialize_ram_data();
+        if (!serialized_ram_data.empty()) {
+            client_->emit("ram_publish", serialized_ram_data);
         }
 
         // sleep until emitting interval time is past
@@ -86,6 +91,10 @@ void publisher::callback(const std::string& message, const double value) {
     else if(message == "start")
     {
         system_->resume_tracker();
+    }
+    else if(message == "save_map")
+    {
+        system_->save_map_database("/tmp/map" + std::string("/tmp/map" + std::to_string(rand() % 100000) + ".msg"));
     }
     else if(message == "DistToGround") 
     {

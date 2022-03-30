@@ -122,6 +122,15 @@ else()
     message(FATAL_ERROR "Invalid BoW framework: ${BOW_FRAMEWORK}")
 endif()
 
+# Constrain 2D
+set(CONSTRAIN_2D OFF CACHE BOOL "Constrain to planar movement")
+if(CONSTRAIN_2D)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC CONSTRAIN_2D)
+    message(STATUS "Constrain 2d: ENABLED")
+else()
+    message(STATUS "Constrain 2d: DISABLED")
+endif()
+
 # ----- Configure OpenVSLAM library -----
 
 # Include directories

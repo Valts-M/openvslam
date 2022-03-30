@@ -34,7 +34,7 @@ public:
      * @param frame_publisher
      * @param map_publisher
      */
-    viewer(const YAML::Node& yaml_node, std::shared_ptr<openvslam::system> system,
+    viewer(const YAML::Node& yaml_node, const std::shared_ptr<openvslam::system>& system,
            const std::shared_ptr<openvslam::publish::frame_publisher>& frame_publisher,
            const std::shared_ptr<openvslam::publish::map_publisher>& map_publisher);
 

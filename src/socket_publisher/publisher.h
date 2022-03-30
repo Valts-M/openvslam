@@ -23,7 +23,7 @@ namespace socket_publisher {
 
 class publisher {
 public:
-    publisher(const YAML::Node& yaml_node, openvslam::system* system,
+    publisher(const YAML::Node& yaml_node, const std::shared_ptr<openvslam::system>& system,
               const std::shared_ptr<openvslam::publish::frame_publisher>& frame_publisher,
               const std::shared_ptr<openvslam::publish::map_publisher>& map_publisher);
 
@@ -42,7 +42,7 @@ public:
     bool is_terminated();
 
 private:
-    openvslam::system* system_;
+    const std::shared_ptr<openvslam::system> system_;
     const unsigned int emitting_interval_;
     const unsigned int image_quality_;
 

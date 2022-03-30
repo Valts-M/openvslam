@@ -32,6 +32,7 @@ set(INSTALL_SOCKET_PUBLISHER OFF CACHE BOOL "Install SocketPublisher library")
 set(BUILD_EXAMPLES OFF CACHE BOOL "Build examples")
 set(BUILD_TESTS OFF CACHE BOOL "Build tests")
 set(BOW_FRAMEWORK "FBoW" CACHE STRING "DBoW2 or FBoW")
+set(CONSTRAIN_2D OFF CACHE BOOL "Constrain to planar movement")
 set_property(CACHE BOW_FRAMEWORK PROPERTY STRINGS "DBoW2" "FBoW")
 
 # ----- Set options for debugging -----

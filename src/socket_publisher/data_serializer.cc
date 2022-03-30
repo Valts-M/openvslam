@@ -6,6 +6,8 @@
 #include "openvslam/publish/map_publisher.h"
 
 #include <forward_list>
+#include <sys/types.h>
+#include <sys/sysinfo.h>
 
 #include <opencv2/imgcodecs.hpp>
 
@@ -73,6 +75,19 @@ std::string data_serializer::serialize_latest_frame(const unsigned int image_qua
     cv::imencode(".jpg", image, buf, params);
     const auto char_buf = reinterpret_cast<const unsigned char*>(buf.data());
     const std::string base64_serial = base64_encode(char_buf, buf.size());
+    return base64_serial;
+}
+
+std::string data_serializer::serialize_ram_data() {
+    struct sysinfo memInfo;
+    sysinfo (&memInfo);
+    std::string totalVirtualMem = 
+        std::to_string((memInfo.totalram - memInfo.freeram) * memInfo.mem_unit) + 
+        "/" + 
+        std::to_string(memInfo.totalram * memInfo.mem_unit);
+
+    const auto char_buf = reinterpret_cast<const unsigned char*>(totalVirtualMem.c_str());
+    const std::string base64_serial = base64_encode(char_buf, totalVirtualMem.size() + 1);
     return base64_serial;
 }
 

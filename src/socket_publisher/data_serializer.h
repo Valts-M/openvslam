@@ -37,6 +37,8 @@ public:
 
     std::string serialize_map_diff();
 
+    std::string serialize_ram_data();
+
     std::string serialize_latest_frame(const unsigned int image_quality_);
 
     static std::string serialized_reset_signal_;
