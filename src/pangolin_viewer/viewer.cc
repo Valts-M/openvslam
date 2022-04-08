@@ -251,7 +251,7 @@ void viewer::draw_keyframes() {
     if (*menu_show_keyfrms_) {
         glLineWidth(keyfrm_line_width_);
         glColor3fv(cs_.kf_line_.data());
-        for (const auto keyfrm : keyfrms) {
+        for (const auto &keyfrm : keyfrms) {
             if (!keyfrm || keyfrm->will_be_erased()) {
                 continue;
             }
@@ -270,7 +270,7 @@ void viewer::draw_keyframes() {
 
         glBegin(GL_LINES);
 
-        for (const auto keyfrm : keyfrms) {
+        for (const auto &keyfrm : keyfrms) {
             if (!keyfrm || keyfrm->will_be_erased()) {
                 continue;
             }
@@ -280,7 +280,7 @@ void viewer::draw_keyframes() {
             // covisibility graph
             const auto covisibilities = keyfrm->graph_node_->get_covisibilities_over_weight(100);
             if (!covisibilities.empty()) {
-                for (const auto covisibility : covisibilities) {
+                for (const auto &covisibility : covisibilities) {
                     if (!covisibility || covisibility->will_be_erased()) {
                         continue;
                     }
@@ -301,7 +301,7 @@ void viewer::draw_keyframes() {
 
             // loop edges
             const auto loop_edges = keyfrm->graph_node_->get_loop_edges();
-            for (const auto loop_edge : loop_edges) {
+            for (const auto &loop_edge : loop_edges) {
                 if (!loop_edge) {
                     continue;
                 }

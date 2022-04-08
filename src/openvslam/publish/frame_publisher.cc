@@ -13,8 +13,10 @@ namespace publish {
 frame_publisher::frame_publisher(const std::shared_ptr<config>& cfg, data::map_database* map_db,
                                  const unsigned int img_width)
     : cfg_(cfg), map_db_(map_db), img_width_(img_width),
-      img_(cv::Mat(480, img_width_, CV_8UC3, cv::Scalar(0, 0, 0))) {
+      depth_thr_(cfg_->camera_->true_baseline_ * 40.),
+      img_(cv::Mat(480, img_width_, CV_8UC3, cv::Scalar(0, 0, 0))){
     spdlog::debug("CONSTRUCT: publish::frame_publisher");
+    spdlog::info("Depth threashold: {}", depth_thr_);
 }
 
 frame_publisher::~frame_publisher() {
@@ -27,6 +29,7 @@ cv::Mat frame_publisher::draw_frame(const bool draw_text) {
     std::vector<cv::KeyPoint> init_keypts;
     std::vector<int> init_matches;
     std::vector<cv::KeyPoint> curr_keypts;
+    std::vector<float> depths;
     double elapsed_ms;
     bool mapping_is_enabled;
     std::vector<bool> is_tracked;
@@ -46,6 +49,8 @@ cv::Mat frame_publisher::draw_frame(const bool draw_text) {
         }
 
         curr_keypts = curr_keypts_;
+
+        depths = depths_;
 
         elapsed_ms = elapsed_ms_;
 
@@ -73,7 +78,7 @@ cv::Mat frame_publisher::draw_frame(const bool draw_text) {
             break;
         }
         case tracker_state_t::Tracking: {
-            num_tracked = draw_tracked_points(img, curr_keypts, is_tracked, mapping_is_enabled, mag);
+            num_tracked = draw_tracked_points(img, curr_keypts, is_tracked, depths, mapping_is_enabled, mag);
             break;
         }
         default: {
@@ -110,7 +115,8 @@ unsigned int frame_publisher::draw_initial_points(cv::Mat& img, const std::vecto
 }
 
 unsigned int frame_publisher::draw_tracked_points(cv::Mat& img, const std::vector<cv::KeyPoint>& curr_keypts,
-                                                  const std::vector<bool>& is_tracked, const bool mapping_is_enabled,
+                                                  const std::vector<bool>& is_tracked, const std::vector<float>& depths, 
+                                                  const bool mapping_is_enabled,
                                                   const float mag) const {
     constexpr float radius = 5;
 
@@ -123,14 +129,37 @@ unsigned int frame_publisher::draw_tracked_points(cv::Mat& img, const std::vecto
 
         const cv::Point2f pt_begin{curr_keypts.at(i).pt.x * mag - radius, curr_keypts.at(i).pt.y * mag - radius};
         const cv::Point2f pt_end{curr_keypts.at(i).pt.x * mag + radius, curr_keypts.at(i).pt.y * mag + radius};
-
-        if (mapping_is_enabled) {
-            cv::rectangle(img, pt_begin, pt_end, mapping_color_);
-            cv::circle(img, curr_keypts.at(i).pt * mag, 2, mapping_color_, -1);
+        
+        if(depths.at(i) < 0){
+            cv::rectangle(img, pt_begin, pt_end, no_depth_color_);
+            cv::circle(img, curr_keypts.at(i).pt * mag, 2, no_depth_color_, -1);
         }
-        else {
-            cv::rectangle(img, pt_begin, pt_end, localization_color_);
-            cv::circle(img, curr_keypts.at(i).pt * mag, 2, localization_color_, -1);
+        else 
+        {
+            if (mapping_is_enabled) {
+                if(depths.at(i) < depth_thr_)
+                {
+                    cv::rectangle(img, pt_begin, pt_end, mapping_color_);
+                    cv::circle(img, curr_keypts.at(i).pt * mag, 2, mapping_color_, -1);
+                }
+                else
+                {
+                    cv::rectangle(img, pt_begin, pt_end, mapping_color_far_);
+                    cv::circle(img, curr_keypts.at(i).pt * mag, 2, mapping_color_far_, -1);    
+                }
+            }
+            else {
+                if(depths.at(i) < depth_thr_)
+                {
+                    cv::rectangle(img, pt_begin, pt_end, localization_color_);
+                    cv::circle(img, curr_keypts.at(i).pt * mag, 2, localization_color_, -1);
+                }
+                else
+                {
+                    cv::rectangle(img, pt_begin, pt_end, localization_color_far_);
+                    cv::circle(img, curr_keypts.at(i).pt * mag, 2, localization_color_far_, -1);
+                }
+            }
         }
 
         ++num_tracked;
@@ -189,6 +218,7 @@ void frame_publisher::update(tracking_module* tracker) {
 
     const auto num_curr_keypts = tracker->curr_frm_.num_keypts_;
     curr_keypts_ = tracker->curr_frm_.keypts_;
+    depths_ = tracker->curr_frm_.depths_;
     elapsed_ms_ = tracker->elapsed_ms_;
     mapping_is_enabled_ = tracker->get_mapping_module_status();
     tracking_state_ = tracker->last_tracking_state_;

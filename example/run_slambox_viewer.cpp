@@ -220,7 +220,7 @@ void mono_tracking(const std::shared_ptr<openvslam::config>& cfg,
     // and pass the frame_publisher and the map_publisher
 #ifdef USE_PANGOLIN_VIEWER
     pangolin_viewer::viewer viewer(
-        openvslam::util::yaml_optional_ref(cfg->yaml_node_, "PangolinViewer"), &SLAM, SLAM.get_frame_publisher(), SLAM.get_map_publisher());
+        openvslam::util::yaml_optional_ref(cfg->yaml_node_, "PangolinViewer"), SLAM, SLAM.get_frame_publisher(), SLAM.get_map_publisher());
 #elif USE_SOCKET_PUBLISHER
     socket_publisher::publisher publisher(
         openvslam::util::yaml_optional_ref(cfg->yaml_node_, "SocketPublisher"), &SLAM, SLAM.get_frame_publisher(), SLAM.get_map_publisher());
@@ -295,12 +295,12 @@ void stereo_tracking(const std::shared_ptr<openvslam::config>& cfg,
     }
 
     // RealSense settings
-    rs2::pipeline pipeline;
-    rs2::config config;
-    config.enable_stream(RS2_STREAM_FISHEYE, 1, RS2_FORMAT_Y8, 30);
-    config.enable_stream(RS2_STREAM_FISHEYE, 2, RS2_FORMAT_Y8, 30);
+    // rs2::pipeline pipeline;
+    // rs2::config config;
+    // config.enable_stream(RS2_STREAM_FISHEYE, 1, RS2_FORMAT_Y8, 30);
+    // config.enable_stream(RS2_STREAM_FISHEYE, 2, RS2_FORMAT_Y8, 30);
 
-    rs2::pipeline_profile rs2_cfg = pipeline.start(config);
+    // rs2::pipeline_profile rs2_cfg = pipeline.start(config);
 
     const openvslam::util::stereo_rectifier rectifier(cfg);
 
@@ -324,22 +324,22 @@ void stereo_tracking(const std::shared_ptr<openvslam::config>& cfg,
     // run the SLAM in another thread
     std::thread thread([&]() {
         while (true) {
-            rs2::frameset data = pipeline.wait_for_frames();
+            // rs2::frameset data = pipeline.wait_for_frames();
 
-            frame1 = funcFormat::frame2Mat(data.get_fisheye_frame(1));
-            frame2 = funcFormat::frame2Mat(data.get_fisheye_frame(2));
+            // frame1 = funcFormat::frame2Mat(data.get_fisheye_frame(1));
+            // frame2 = funcFormat::frame2Mat(data.get_fisheye_frame(2));
 
-            rectifier.rectify(frame1, frame2, input1, input2);
+            // rectifier.rectify(frame1, frame2, input1, input2);
             
-            t1 = std::chrono::steady_clock::now();
-            tframe = std::chrono::duration_cast<ms>(t1 - t2).count();
+            // t1 = std::chrono::steady_clock::now();
+            // tframe = std::chrono::duration_cast<ms>(t1 - t2).count();
 
-            SLAM.feed_stereo_frame(input1, input2, tframe);
+            // SLAM.feed_stereo_frame(input1, input2, tframe);
 
-            t2 = t1;
-            std::ostringstream strs;
-            strs << tframe;
-            std::string str = strs.str() + " ms";
+            // t2 = t1;
+            // std::ostringstream strs;
+            // strs << tframe;
+            // std::string str = strs.str() + " ms";
 
             if (SLAM.terminate_is_requested())
                 break;

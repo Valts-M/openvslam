@@ -51,7 +51,8 @@ protected:
                                      const float mag = 1.0) const;
 
     unsigned int draw_tracked_points(cv::Mat& img, const std::vector<cv::KeyPoint>& curr_keypts,
-                                     const std::vector<bool>& is_tracked, const bool mapping_is_enabled,
+                                     const std::vector<bool>& is_tracked, const std::vector<float>& depths,
+                                     const bool mapping_is_enabled,
                                      const float mag = 1.0) const;
 
     void draw_info_text(cv::Mat& img, const tracker_state_t tracking_state, const unsigned int num_tracked,
@@ -59,7 +60,13 @@ protected:
 
     // colors (BGR)
     const cv::Scalar mapping_color_{0, 255, 255};
+    const cv::Scalar mapping_color_far_{0, 72, 255};
+
     const cv::Scalar localization_color_{255, 255, 0};
+    const cv::Scalar localization_color_far_{255, 38, 0};
+
+    const cv::Scalar no_depth_color_{255, 0, 255};
+
 
     //! config
     std::shared_ptr<config> cfg_;
@@ -67,6 +74,8 @@ protected:
     data::map_database* map_db_;
     //! maximum size of output images
     const int img_width_;
+
+    const float depth_thr_;
 
     // -------------------------------------------
     //! mutex to access variables below
@@ -84,6 +93,8 @@ protected:
 
     //! current keypoints
     std::vector<cv::KeyPoint> curr_keypts_;
+
+    std::vector<float> depths_;
 
     //! elapsed time for tracking
     double elapsed_ms_ = 0.0;
