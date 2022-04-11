@@ -211,6 +211,12 @@ void frame_publisher::draw_info_text(cv::Mat& img, const tracker_state_t trackin
     cv::putText(img, ss.str(), cv::Point(5, img.rows - 5), cv::FONT_HERSHEY_PLAIN, 1, cv::Scalar{255, 255, 255}, 1, 8);
 }
 
+tracker_state_t frame_publisher::get_tracking_state()
+{
+    std::lock_guard<std::mutex> lock(mtx_);
+    return tracking_state_;
+}
+
 void frame_publisher::update(tracking_module* tracker) {
     std::lock_guard<std::mutex> lock(mtx_);
 
