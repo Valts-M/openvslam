@@ -20,15 +20,15 @@ socket_client::socket_client(const std::string& server_uri)
 }
 
 void socket_client::on_close() {
-    spdlog::info("connection closed correctly");
+    // spdlog::info("connection closed correctly");
 }
 
 void socket_client::on_fail() {
-    spdlog::info("connection closed incorrectly");
+    // spdlog::info("connection closed incorrectly");
 }
 
 void socket_client::on_open() {
-    spdlog::info("connected to server");
+    // spdlog::info("connected to server");
 }
 
 void socket_client::on_receive(const sio::event& event) {
@@ -45,7 +45,7 @@ void socket_client::on_receive(const sio::event& event) {
         }
     }
     catch (std::exception& ex) {
-        spdlog::error(ex.what());
+        // spdlog::error(ex.what());
     }
 }
 
